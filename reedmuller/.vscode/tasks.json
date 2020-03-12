@@ -1,0 +1,30 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558 
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "build_RMenc",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-g",
+                "mainRM.c", "common.c", "list.c","matrix.c", "monomial.c", "reedmuller.c", "utils.c", "vector.c", "reedmullergmc.c",
+                //"mainRM.c","reedmuller.c",  // test binary tree
+                //"main.c","bhattacharyya_files.c","channels.c","double_ei.c","pc_construction.c","pc_decode_internal.c","pc_decode.c","pc_encode.c",
+                //"polar_codes.c","error_rate.c",  // test polar codes
+                "-lm", // for mainRM
+                "-o",
+                "testRMenc.out"
+                //"mainSimulatePC.out"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"//
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
+        }
+    ]
+}
