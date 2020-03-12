@@ -20,7 +20,7 @@
                 "newhope512cpa/verify.c",
                 //"newhope512cpa/PQCgenKAT_kem.c",
                 "newhope512cpa/PQCgenKAT_pkeRM.c",
-                //"newhope512cpa/PQCgenKAT_pkeRC.c",
+                //"newhope512cpa/PQCgenKAT_pkeRCodes.c",
                 //"reedmuller/mainRM.c",
                 "reedmuller/common.c",
                 "reedmuller/list.c",
