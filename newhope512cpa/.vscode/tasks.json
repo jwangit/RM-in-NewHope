@@ -1,0 +1,43 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558 
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "PQCgenKAT_build",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-g",
+                "kem.c", 
+                "cpapke.c",
+                "fips202.c",
+                "ntt.c", 
+                "poly.c", 
+                "precomp.c",
+                "reduce.c",
+                "rng.c", 
+                "verify.c",
+                "PQCgenKAT_kem.c",
+                "-o",
+                "PQoutput.out",
+                "-I",
+                "/usr/local/ssl/include",
+                "-L",
+                "/usr/local/ssl/lib",
+                "-l",
+                "ssl",
+                "-l",
+                "crypto"
+            ],
+            "options": {
+              "cwd": "${workspaceFolder}"
+                //  "cwd":"/usr/bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
+        }
+    ]
+}
