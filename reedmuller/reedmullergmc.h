@@ -1,9 +1,8 @@
 //
-//  reedmuller.h
-//  PolarCodes
+//  reedmullergmc.h
 //
-//  Created by Nicola De Franceschi on 03/10/13.
-//  Copyright (c) 2013 Nicola De Franceschi. All rights reserved.
+//  Created by Jiabo Wang (Mar) on 11/03/20.
+//  Copyright © 2020 Wang, Jiabo (Mar). All rights reserved.
 //
 #ifndef REEDMULLERGMC_H
 #define REEDMULLERGMC_H

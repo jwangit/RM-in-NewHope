@@ -1,3 +1,12 @@
+//
+//  reedmullergmc.c
+//  
+//
+//  Created by Jiabo Wang on 12/03/20.
+//  Copyright (c) 2020 Jiabo Wang. All rights reserved.
+//
+
+
 #include "reedmullergmc.h"
 #include <math.h>
 
@@ -27,10 +36,13 @@ Btree *createTree(double *ptr, int8_t r, int8_t m)
     T->recYv = (double*) malloc(sizeof(double)*pus);
     T->recYu = (double*) malloc(sizeof(double)*pus);
     T->chat = (int8_t *) malloc(sizeof(int8_t)*N);///////////////////////REMEMBER TO FREE!!!!!!!!!
- //   T->mhat = (int8_t *) malloc(sizeof(int8_t)*dim);///////////////////////REMEMBER TO FREE!!!!!!!!!
+ //   T->chathat = (vector*) malloc(sizeof(vector));
+ //   T->chathat->values = (int *) malloc(sizeof(int)*N);
+ //   T->sys = (int8_t *) malloc(sizeof(int8_t)*dim);///////////////////////REMEMBER TO FREE!!!!!!!!!
     (T) -> r = r;
     (T) -> m = m;
- 
+//    T->chathat->length = N;
+    
     if ( r == 0 )
     {
         T->lchild = NULL;
@@ -48,12 +60,14 @@ Btree *createTree(double *ptr, int8_t r, int8_t m)
             for (int i = 0; i < N; i++)
             {
                 T->chat[i] = 1;
+             //   T->chathat->values[i] = 1;
             }
         }else 
         {
             for (int i = 0; i < N; i++)
             {
                 T->chat[i] = 0;
+             //   T->chathat->values[i] = 0;
             }
         }
         // finish decoding of repetition code here ; give T->chat  
@@ -67,7 +81,9 @@ Btree *createTree(double *ptr, int8_t r, int8_t m)
         for (int i = 0; i < N; i++)
         {
             T->chat[i] = ptr[i]<0;
-            temp1 += (T->chat[i]); 
+            temp1 += (T->chat[i]);
+           // T->chathat->values[i] = ptr[i]<0;
+           // temp1 += (T->chathat->values[i]); 
         }
         if ( (temp1%2) == 1)
         {
@@ -81,6 +97,7 @@ Btree *createTree(double *ptr, int8_t r, int8_t m)
                 }
             }
             T->chat[smallestInd] ^= 0X01;
+            //T->chathat->values[smallestInd] ^= 0X01;
         }
         // end decoding SPC code here
     }else
@@ -143,7 +160,7 @@ double* rm_calc_g(double *recY, uint16_t n, uint8_t *a1hat)
 }
 uint8_t *combsubcodes (Btree *Tv, Btree *Tu, int N)
 {
-    uint8_t * codeword = malloc(sizeof(uint8_t)*N) ;
+    uint8_t * codeword = malloc(sizeof(uint8_t)*N) ;///////////////////////REMEMBER TO FREE!!!!!!!!!
     for (int i = 0; i < N/2; i++)
     {
         codeword[2*i] = (Tv->chat[i])^(Tu->chat[i]);
@@ -186,15 +203,17 @@ void destroyTree(Btree *T)
     }else
     {
         free(T->chat);
+        T->chat = NULL;
         free(T->recYv);
+        T->recYv = NULL;
         free(T->recYu);
-
-        pl = (T)->lchild;
-        pr = (T)->rchild;
-        (T)->lchild = NULL;
-        (T)->rchild = NULL;
+        T->recYu = NULL;
+        pl = T->lchild;
+        pr = T->rchild;
+        T->lchild = NULL;
+        T->rchild = NULL;
         free(T);
-        (T) = NULL;
+        T = NULL;
         destroyTree(pl);
         destroyTree(pr);
     }
