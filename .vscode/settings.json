@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "reedmullergmc.h": "c",
+        "cpapke.h": "c",
+        "PQCgenKAT_pkeRC.C": "cpp",
+        "stdio.h": "c"
+    }
+}

@@ -1,0 +1,55 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "buildNH_RM",
+            "type": "shell",
+            "command": "/usr/bin/gcc",//"msbuild",
+            "args": [
+                "-g",
+                "newhope512cpa/kem.c", 
+                "newhope512cpa/cpapke.c",
+                "newhope512cpa/fips202.c",
+                "newhope512cpa/ntt.c", 
+                "newhope512cpa/poly.c", 
+                "newhope512cpa/precomp.c",
+                "newhope512cpa/reduce.c",
+                "newhope512cpa/rng.c", 
+                "newhope512cpa/verify.c",
+                //"newhope512cpa/PQCgenKAT_kem.c",
+                "newhope512cpa/PQCgenKAT_pkeRM.c",
+                //"newhope512cpa/PQCgenKAT_pkeRC.c",
+                //"reedmuller/mainRM.c",
+                "reedmuller/common.c",
+                "reedmuller/list.c",
+                "reedmuller/matrix.c", 
+                "reedmuller/monomial.c", 
+                "reedmuller/reedmuller.c", 
+                "reedmuller/utils.c", 
+                "reedmuller/vector.c", 
+                "reedmuller/reedmullergmc.c",
+                "-lm",
+                "-o",
+                "PQoutput.out",
+                "-I",
+                "/usr/local/ssl/include",
+                "-L",
+                "/usr/local/ssl/lib",
+                "-l",
+                "ssl",
+                "-l",
+                "crypto"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+                  //  "cwd":"/usr/bin"
+              },
+              "problemMatcher": [
+                  "$gcc"
+              ],
+            "group": "build"
+        }
+    ]
+}
