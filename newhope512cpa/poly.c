@@ -401,7 +401,7 @@ void poly_sample(poly *r, const unsigned char *seed, unsigned char nonce)
 * 
 * Description: Sample a polynomial deterministically from a seed and a nonce,
 *              with output polynomial close to centered binomial distribution
-*              with parameter k=8
+*              with parameter aribrary k=NEWHOPE_bytesofK*8
 *
 * Arguments:   - poly *r:                   pointer to output polynomial
 *              - const unsigned char *seed: pointer to input seed 
@@ -410,10 +410,6 @@ void poly_sample(poly *r, const unsigned char *seed, unsigned char nonce)
 **************************************************/
 void poly_sampleK(poly *r, const unsigned char *seed, unsigned char nonce)
 {
-//#if NEWHOPE_K != 8
-//#error "poly_sample in poly.c only supports k=8"
-//#endif
-
   unsigned char buf[128*NEWHOPE_bytesofK], a[NEWHOPE_bytesofK], b[NEWHOPE_bytesofK];
   int i,j;
   int temp=0;
