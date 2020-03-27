@@ -261,7 +261,7 @@ void poly_tomsg(unsigned char *msg, const poly *x)
 **************************************************/
 void poly_toRM(vector *decoded, const poly *x, int par_r, int par_m, int par_N)
 {
-  double inputGMC[512];
+  double inputGMC[NEWHOPE_N];
   for (unsigned int i = 0; i < par_N; i++)
   {
     inputGMC[i] = 1.0*x->coeffs[i];
@@ -392,6 +392,54 @@ void poly_sample(poly *r, const unsigned char *seed, unsigned char nonce)
       r->coeffs[64*i+j/2]   = a + NEWHOPE_Q - b;
       r->coeffs[64*i+j/2+1] = c + NEWHOPE_Q - d;
       */
+    }
+  }
+}
+
+/*************************************************
+* Name:        poly_sampleK
+* 
+* Description: Sample a polynomial deterministically from a seed and a nonce,
+*              with output polynomial close to centered binomial distribution
+*              with parameter k=8
+*
+* Arguments:   - poly *r:                   pointer to output polynomial
+*              - const unsigned char *seed: pointer to input seed 
+*              - unsigned char nonce:       one-byte input nonce
+*              - int K: binomial parameter
+**************************************************/
+void poly_sampleK(poly *r, const unsigned char *seed, unsigned char nonce)
+{
+//#if NEWHOPE_K != 8
+//#error "poly_sample in poly.c only supports k=8"
+//#endif
+
+  unsigned char buf[128*NEWHOPE_bytesofK], a[NEWHOPE_bytesofK], b[NEWHOPE_bytesofK];
+  int i,j;
+  int temp=0;
+  unsigned char extseed[NEWHOPE_SYMBYTES+2];
+
+  for(i=0;i<NEWHOPE_SYMBYTES;i++)
+    extseed[i] = seed[i];
+  extseed[NEWHOPE_SYMBYTES] = nonce;
+
+  for(i=0;i<NEWHOPE_N/64;i++) /* Generate noise in blocks of 64 coefficients */
+  {
+    extseed[NEWHOPE_SYMBYTES+1] = i;
+    shake256(buf,128*NEWHOPE_bytesofK,extseed,NEWHOPE_SYMBYTES+2);
+    for(j=0;j<64;j++)
+    {
+      r->coeffs[64*i+j] =  NEWHOPE_Q ;
+      temp = 0;
+      do
+      {  
+        a[temp] = buf[2*j*NEWHOPE_bytesofK+2*temp];
+        b[temp] = buf[2*j*NEWHOPE_bytesofK+2*temp+1];
+        r->coeffs[64*i+j] += (hw(a[temp])  - hw(b[temp]));
+        temp++;
+
+      } while (temp < NEWHOPE_bytesofK);
+
     }
   }
 }

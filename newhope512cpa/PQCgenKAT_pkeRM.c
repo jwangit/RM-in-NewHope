@@ -11,6 +11,7 @@
 #include "rng.h"
 #include "api.h"
 #include "cpapke.h"
+#include "time.h"
 
 #define	MAX_MARKER_LEN		50
 #define KAT_SUCCESS          0
@@ -34,12 +35,14 @@ main()
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     int                 ret_val;
    
-    unsigned char buf[2*NEWHOPE_SYMBYTES];
+    unsigned int framerrCount = 0;
+	unsigned char buf[2*NEWHOPE_SYMBYTES];
     vector *encoded;
     vector *decoded = (vector *)malloc(sizeof(vector));
     decoded->length = NEWHOPE_N;
     decoded->values = (int *) malloc(sizeof(int)*NEWHOPE_N);
     
+
     printf("Working...\n");
     // Create the RESPONSE file
     sprintf(fn_rsp, "PQCpkeKAT_%d.rsp", NEWHOPE_N);
@@ -47,7 +50,8 @@ main()
         printf("Couldn't open <%s> for write\n", fn_rsp);
         return KAT_FILE_OPEN_ERROR;
     }
-    fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE);
+    fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE_RM);
+	fprintf(fp_rsp, "K = %d,     ", NEWHOPE_bytesofK*8);
     fflush(fp_rsp); 
     
     //randomness source ; need more investigation???
@@ -55,11 +59,15 @@ main()
         entropy_input[i] = i;
     randombytes_init(entropy_input, NULL, 256);    
     
+	unsigned int NumofIteration = 100000;
+	time_t t; 
+    clock_t clk;
+    t = clock();
     do {
-        
-        fprintf(fp_rsp, "count = %d\n", count++);
+        count++;
+        //fprintf(fp_rsp, "count = %d\n", count++);
         randombytes(seed, 48);
-        fprintBstr(fp_rsp, "seed = ", seed, 48);
+        //fprintBstr(fp_rsp, "seed = ", seed, 48);
         randombytes_init(seed, NULL, 256);
         
         // Generate the public/private keypair
@@ -77,20 +85,24 @@ main()
         
         // NewHope-CPA-PKE DECRYPTION        
         cpapke_decRM(decoded,ct,sk);
-        fprintf(fp_rsp, "\n");
-        fflush(fp_rsp);
         
         if(ret_val = compare_vectors(encoded, decoded) != 0)
         {
-            printf("crypto_kem_dec returned bad 'RM' codeword\n");
-            return KAT_CRYPTO_FAILURE;
+    		framerrCount ++;
+//            printf("crypto_kem_dec returned bad 'RM' codeword\n");
+//           return KAT_CRYPTO_FAILURE;
         }
 		destroy_vector(encoded);
 
-    } while ( count<1000 );
-    
-    fclose(fp_rsp);
+    } while ( count<NumofIteration );
+    t = clock() - t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC; // calculate the elapsed time
+    printf("The GMC took %f seconds to execute", time_taken);
 
+    fprintf(fp_rsp, "framerrCount = %d,     ", framerrCount);
+	fprintf(fp_rsp, "framerrRate = %5.5f\n", (1.0*framerrCount/NumofIteration) );
+	fflush(fp_rsp); 
+    fclose(fp_rsp);
     return KAT_SUCCESS;
 }
 

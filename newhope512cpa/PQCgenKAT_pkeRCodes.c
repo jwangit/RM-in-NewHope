@@ -33,9 +33,10 @@ main()
     int                 count = 0;
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     int                 ret_val;
-   
     unsigned char buf[2*NEWHOPE_SYMBYTES];
-    
+    unsigned int framerrCount = 0;
+	unsigned int NumofIteration = 10000;
+
     printf("Working...\n");
     // Create the RESPONSE file
     sprintf(fn_rsp, "PQCpkeKAT_%d.rsp", NEWHOPE_N);
@@ -43,19 +44,20 @@ main()
         printf("Couldn't open <%s> for write\n", fn_rsp);
         return KAT_FILE_OPEN_ERROR;
     }
-    fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE);
+    fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE_RP);
+	fprintf(fp_rsp, "K = %d,     ", NEWHOPE_bytesofK*8);
     fflush(fp_rsp); 
     
     //randomness source ; need more investigation???
    for (int i=0; i<48; i++)
         entropy_input[i] = i;
     randombytes_init(entropy_input, NULL, 256);    
-    
+   
     do {
-        
-        fprintf(fp_rsp, "count = %d\n", count++);
+        count++;
+        //fprintf(fp_rsp, "count = %d\n", count++);
         randombytes(seed, 48);
-        fprintBstr(fp_rsp, "seed = ", seed, 48);
+        //fprintBstr(fp_rsp, "seed = ", seed, 48);
         randombytes_init(seed, NULL, 256);
         
         // Generate the public/private keypair
@@ -77,18 +79,21 @@ main()
          cpapke_dec(muhat, ct, sk);
         //fprintBstr(fp_rsp, "muhat= ", muhat, CRYPTO_BYTES);
         if ( memcmp(muhat, buf, NEWHOPE_SYMBYTES) ) {
-            printf("crypto_kem_dec returned bad 'ss' value\n");
-            return KAT_CRYPTO_FAILURE;
+            framerrCount ++;
+			//printf("crypto_kem_dec returned bad 'ss' value\n");
+            //return KAT_CRYPTO_FAILURE;
         }
 
-        fprintf(fp_rsp, "\n");
-        fflush(fp_rsp);
+        //fprintf(fp_rsp, "\n");
+        //fflush(fp_rsp);
         
 
-    } while ( count<10 );
+    } while ( count<NumofIteration );
     
+    fprintf(fp_rsp, "framerrCount = %d,     ", framerrCount);
+	fprintf(fp_rsp, "framerrRate = %5.5f\n", (1.0*framerrCount/NumofIteration) );
+	fflush(fp_rsp); 
     fclose(fp_rsp);
-
     return KAT_SUCCESS;
 }
 

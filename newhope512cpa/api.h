@@ -10,7 +10,8 @@
 
 #if   (NEWHOPE_N == 512)
 #define CRYPTO_ALGNAME "NewHope512-CPAKEM"
-#define CRYPTO_PKE "NewHope512-CPAPKE"
+#define CRYPTO_PKE_RP "NewHope512-CPAPKE-REPETITIONCODES"
+#define CRYPTO_PKE_RM "NewHope512-CPAPKE-RM"
 #define RM_r				4
 #define RM_m				9
 #define RM_k				256

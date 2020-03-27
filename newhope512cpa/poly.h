@@ -29,6 +29,7 @@ void poly_frommsg(poly *r, const unsigned char *msg);
 void poly_tomsg(unsigned char *msg, const poly *x);
 void poly_sub(poly *r, const poly *a, const poly *b);
 //jwang
+void poly_sampleK(poly *r, const unsigned char *seed, unsigned char nonce);
 vector* poly_fromRM(poly *r, const unsigned char *msg, int par_r, int par_m, int par_k);
 void poly_toRM(vector *decoded, const poly *x, int par_r, int par_m, int par_N);
 #endif
