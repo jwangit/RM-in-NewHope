@@ -18,6 +18,8 @@
 #define RM_N				512
 #elif (NEWHOPE_N == 1024)
 #define CRYPTO_ALGNAME "NewHope1024-CPAKEM"
+#define CRYPTO_PKE_RP "NewHope1024-CPAPKE-REPETITIONCODES"
+#define CRYPTO_PKE_RM "NewHope1024-CPAPKE-RM"
 #define RM_r				4
 #define RM_m				10
 #define RM_k				386
