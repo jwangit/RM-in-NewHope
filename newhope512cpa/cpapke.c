@@ -110,11 +110,13 @@ void cpapke_keypair(unsigned char *pk,
   gen_a(&ahat, publicseed);
 
 //  poly_sample(&shat, noiseseed, 0);
-  poly_sampleK(&shat, noiseseed, 0);
+//  poly_sampleK(&shat, noiseseed, 0);
+  poly_sampleKmodif(&shat, noiseseed, 0);
   poly_ntt(&shat);
 
 //  poly_sample(&ehat, noiseseed, 1);
-  poly_sampleK(&ehat, noiseseed, 1);
+//  poly_sampleK(&ehat, noiseseed, 1);
+  poly_sampleKmodif(&ehat, noiseseed, 1);
   poly_ntt(&ehat);
 
   poly_mul_pointwise(&ahat_shat, &shat, &ahat);
@@ -153,9 +155,13 @@ void cpapke_enc(unsigned char *c,
   poly_sample(&eprime, coin, 1);
   poly_sample(&eprimeprime, coin, 2);*/
 
-  poly_sampleK(&sprime, coin, 0);
+/*  poly_sampleK(&sprime, coin, 0);
   poly_sampleK(&eprime, coin, 1);
-  poly_sampleK(&eprimeprime, coin, 2);
+  poly_sampleK(&eprimeprime, coin, 2);*/
+  
+  poly_sampleKmodif(&sprime, coin, 0);
+  poly_sampleKmodif(&eprime, coin, 1);
+  poly_sampleKmodif(&eprimeprime, coin, 2);
 
   poly_ntt(&sprime);
   poly_ntt(&eprime);
@@ -200,9 +206,13 @@ vector* cpapke_encRM(unsigned char *c,
 /*  poly_sample(&sprime, coin, 0);
   poly_sample(&eprime, coin, 1);
   poly_sample(&eprimeprime, coin, 2);*/
-  poly_sampleK(&sprime, coin, 0);
+/*  poly_sampleK(&sprime, coin, 0);
   poly_sampleK(&eprime, coin, 1);
-  poly_sampleK(&eprimeprime, coin, 2);
+  poly_sampleK(&eprimeprime, coin, 2);*/
+  
+  poly_sampleKmodif(&sprime, coin, 0);
+  poly_sampleKmodif(&eprime, coin, 1);
+  poly_sampleKmodif(&eprimeprime, coin, 2);
 
   poly_ntt(&sprime);
   poly_ntt(&eprime);
