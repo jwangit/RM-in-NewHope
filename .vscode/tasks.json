@@ -19,8 +19,8 @@
                 "newhope512cpa/rng.c", 
                 "newhope512cpa/verify.c",
                 //"newhope512cpa/PQCgenKAT_kem.c",
-                "newhope512cpa/PQCgenKAT_pkeRM.c",
-                //"newhope512cpa/PQCgenKAT_pkeRCodes.c",*/
+                //"newhope512cpa/PQCgenKAT_pkeRM.c",
+                "newhope512cpa/PQCgenKAT_pkeRCodes.c",*/
                 "newhope1024cpa/kem.c", 
                 "newhope1024cpa/cpapke.c",
                 "newhope1024cpa/fips202.c",
@@ -31,9 +31,8 @@
                 "newhope1024cpa/rng.c", 
                 "newhope1024cpa/verify.c",
                 //"newhope1024cpa/PQCgenKAT_kem.c",
-                "newhope1024cpa/PQCgenKAT_pkeRM.c",
-                //"newhope1024cpa/PQCgenKAT_pkeRCodes.c",
-
+                //"newhope1024cpa/PQCgenKAT_pkeRM.c",
+                "newhope1024cpa/PQCgenKAT_pkeRCodes.c",
                 //"reedmuller/mainRM.c",
                 "reedmuller/common.c",
                 "reedmuller/list.c",

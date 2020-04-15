@@ -11,6 +11,7 @@
 #include "rng.h"
 #include "api.h"
 #include "cpapke.h"
+#include "time.h"
 
 #define	MAX_MARKER_LEN		50
 #define KAT_SUCCESS          0
@@ -35,7 +36,7 @@ main()
     int                 ret_val;
     unsigned char buf[2*NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
-	unsigned int NumofIteration = 1000;
+	unsigned int NumofIteration = 3000000;
 
     printf("Working...\n");
     // Create the RESPONSE file
@@ -52,8 +53,10 @@ main()
    for (int i=0; i<48; i++)
         entropy_input[i] = i;
     randombytes_init(entropy_input, NULL, 256);    
-   
-    do {
+   	
+	time_t t;
+    t = clock();
+	do {
         count++;
         //fprintf(fp_rsp, "count = %d\n", count++);
         randombytes(seed, 48);
@@ -89,7 +92,10 @@ main()
         
 
     } while ( count<NumofIteration );
-    
+    t = clock() - t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC; // calculate the elapsed time
+    printf("The GMC took %f seconds to execute", time_taken);
+
     fprintf(fp_rsp, "framerrCount = %d,     ", framerrCount);
 	fprintf(fp_rsp, "framerrRate = %5.5f\n", (1.0*framerrCount/NumofIteration) );
 	fflush(fp_rsp); 

@@ -36,7 +36,7 @@ main()
     int                 ret_val;
    
     unsigned int framerrCount = 0;
-	unsigned char buf[49+NEWHOPE_SYMBYTES];//[2*NEWHOPE_SYMBYTES];
+	unsigned char buf[2*NEWHOPE_SYMBYTES];//[49+NEWHOPE_SYMBYTES];
     vector *encoded;
     vector *decoded = (vector *)malloc(sizeof(vector));
     decoded->length = NEWHOPE_N;
@@ -59,7 +59,7 @@ main()
         entropy_input[i] = i;
     randombytes_init(entropy_input, NULL, 256);    
     
-	unsigned int NumofIteration = 1000;
+	unsigned int NumofIteration = 100000;
 	time_t t; 
     clock_t clk;
     t = clock();
@@ -79,8 +79,10 @@ main()
         //fprintBstr(fp_rsp, "sk = ", sk, CRYPTO_SECRETKEYBYTES);
         
         // NewHope-CPA-PKE ENCRYPTION
-        randombytes(buf,49+NEWHOPE_SYMBYTES);
+        //randombytes(buf,49+NEWHOPE_SYMBYTES);
+		randombytes(buf,2*NEWHOPE_SYMBYTES);
         encoded = cpapke_encRM(ct, buf, pk, buf+NEWHOPE_SYMBYTES);     
+//        encoded = cpapke_encRM(ct, buf, pk, buf+49);     
         
         
         // NewHope-CPA-PKE DECRYPTION        
