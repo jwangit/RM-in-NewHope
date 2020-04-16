@@ -33,7 +33,7 @@ main()
     unsigned char       entropy_input[48];
     unsigned char       ct[CRYPTO_CIPHERTEXTBYTES], muhat[CRYPTO_BYTES];//, ss1[CRYPTO_BYTES];
     int                 count;
-	int					done;
+	int					done=0;
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     int                 ret_val;
     unsigned char buf[2*NEWHOPE_SYMBYTES];
