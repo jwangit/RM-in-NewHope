@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include "rng.h"
 #include "api.h"
+#include "time.h"
 
 #define	MAX_MARKER_LEN		50
 #define KAT_SUCCESS          0
@@ -51,7 +52,7 @@ main()
         entropy_input[i] = i;
 
     randombytes_init(entropy_input, NULL, 256);
-    for (int i=0; i<100; i++) {
+    for (int i=0; i<1000; i++) {
         fprintf(fp_req, "count = %d\n", i);
         randombytes(seed, 48);
         fprintBstr(fp_req, "seed = ", seed, 48);
@@ -70,6 +71,8 @@ main()
     
     fprintf(fp_rsp, "# %s\n\n", CRYPTO_ALGNAME);
     done = 0;
+    time_t t;
+    t = clock();
     do {
         if ( FindMarker(fp_req, "count = ") )
             fscanf(fp_req, "%d", &count);
@@ -118,6 +121,9 @@ main()
     
     fclose(fp_req);
     fclose(fp_rsp);
+    t = clock() - t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC; // calculate the elapsed time
+    printf("The GMC took %f seconds to execute", time_taken);
 
     return KAT_SUCCESS;
 }

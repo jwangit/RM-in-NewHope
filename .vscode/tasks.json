@@ -33,6 +33,7 @@
                 //"newhope1024cpa/PQCgenKAT_kem.c",
                 //"newhope1024cpa/PQCgenKAT_pkeRM.c",
                 "newhope1024cpa/PQCgenKAT_pkeRCodes.c",
+
                 //"reedmuller/mainRM.c",
                 "reedmuller/common.c",
                 "reedmuller/list.c",
