@@ -177,6 +177,57 @@ void cpapke_enc(unsigned char *c,
 
   encode_c(c, &uhat, &vprime);
 }
+/*************************************************
+* Name:        cpapke_enc_wocompr
+* 
+* Description: Encryption function of
+*              the CPA public-key encryption scheme underlying
+*              the NewHope KEMs
+*
+* Arguments:   - unsigned char *c:          pointer to output ciphertext
+*              - const unsigned char *m:    pointer to input message (of length NEWHOPE_SYMBYTES bytes)
+*              - const unsigned char *pk:   pointer to input public key
+*              - const unsigned char *coin: pointer to input random coins used as seed
+*                                           to deterministically generate all randomness
+**************************************************/
+void cpapke_enc_wocompr(poly *uhat,
+                poly *vprime,
+                const unsigned char *m,
+                const unsigned char *pk,
+                const unsigned char *coin)
+{
+  poly sprime, eprime, ahat, bhat, eprimeprime, v; //vprime, uhat
+  unsigned char publicseed[NEWHOPE_SYMBYTES];
+
+  poly_frommsg(&v, m);
+  decode_pk(&bhat, publicseed, pk);
+  gen_a(&ahat, publicseed);
+
+/*  poly_sample(&sprime, coin, 0);
+  poly_sample(&eprime, coin, 1);
+  poly_sample(&eprimeprime, coin, 2);*/
+
+ /* poly_sampleK(&sprime, coin, 0);
+  poly_sampleK(&eprime, coin, 1);
+  poly_sampleK(&eprimeprime, coin, 2);*/
+
+  poly_sampleKmodif(&sprime, coin, 0);
+  poly_sampleKmodif(&eprime, coin, 1);
+  poly_sampleKmodif(&eprimeprime, coin, 2);
+
+  poly_ntt(&sprime);
+  poly_ntt(&eprime);
+
+  poly_mul_pointwise(uhat, &ahat, &sprime);
+  poly_add(uhat, uhat, &eprime);
+
+  poly_mul_pointwise(vprime, &bhat, &sprime);
+  poly_invntt(vprime);
+
+  poly_add(vprime, vprime, &eprimeprime);
+  poly_add(vprime, vprime, &v); // add message
+
+}
 
 /*************************************************
 * Name:        cpapke_encRM1024
@@ -233,7 +284,59 @@ vector* cpapke_encRM(unsigned char *c,
   return encoded;
 }
 
+/*************************************************
+* Name:        cpapke_encRM1024_wocompr
+* 
+* Description: Encryption function of
+*              the CPA public-key encryption scheme underlying
+*              the NewHope KEMs; this cpake_encRM is different from the one for RM(4,9). This
+*               one is for 1024 ONLY.
+*
+* Arguments:   - unsigned char *c:          pointer to output ciphertext
+*              - const unsigned char *m:    pointer to input message (of length NEWHOPE_SYMBYTES bytes)
+*              - const unsigned char *pk:   pointer to input public key
+*              - const unsigned char *coin: pointer to input random coins used as seed
+*                                           to deterministically generate all randomness
+**************************************************/
+vector* cpapke_encRM_wocompr( poly *uhat,
+                poly *vprime,
+                const unsigned char *m,
+                const unsigned char *pk,
+                const unsigned char *coin)
+{
+  poly sprime, eprime, ahat, bhat, eprimeprime, v;
+  unsigned char publicseed[NEWHOPE_SYMBYTES];
+  vector* encoded;
+  encoded = poly_fromRM(&v, m, RM_r, RM_m, RM_k);
+  decode_pk(&bhat, publicseed, pk);
+  gen_a(&ahat, publicseed);
 
+/*  poly_sample(&sprime, coin, 0);
+  poly_sample(&eprime, coin, 1);
+  poly_sample(&eprimeprime, coin, 2);*/
+/*  poly_sampleK(&sprime, coin, 0);
+  poly_sampleK(&eprime, coin, 1);
+  poly_sampleK(&eprimeprime, coin, 2);*/
+
+  poly_sampleKmodif(&sprime, coin, 0);
+  poly_sampleKmodif(&eprime, coin, 1);
+  poly_sampleKmodif(&eprimeprime, coin, 2);
+
+
+  poly_ntt(&sprime);
+  poly_ntt(&eprime);
+
+  poly_mul_pointwise(uhat, &ahat, &sprime);
+  poly_add(uhat, uhat, &eprime);
+
+  poly_mul_pointwise(vprime, &bhat, &sprime);
+  poly_invntt(vprime);
+
+  poly_add(vprime, vprime, &eprimeprime);
+  poly_add(vprime, vprime, &v); // add message
+
+  return encoded;
+}
 /*************************************************
 * Name:        cpapke_dec
 * 
@@ -258,6 +361,34 @@ void cpapke_dec(unsigned char *m,
   poly_invntt(&tmp);
 
   poly_sub(&tmp, &tmp, &vprime);
+
+  poly_tomsg(m, &tmp);
+}
+/*************************************************
+* Name:        cpapke_dec_wocompr
+* 
+* Description: Decryption function of
+*              the CPA public-key encryption scheme underlying
+*              the NewHope KEMs
+*
+* Arguments:   - unsigned char *m:        pointer to output decrypted message
+*              - const unsigned char *c:  pointer to input ciphertext
+*              - const unsigned char *sk: pointer to input secret key
+**************************************************/
+void cpapke_dec_wocompr(unsigned char *m,
+                poly *uhat,
+                poly *vprime,
+                const unsigned char *sk)
+{
+  poly  tmp, shat;//vprime, uhat,
+
+  poly_frombytes(&shat, sk);
+
+  //decode_c(&uhat, &vprime, c);
+  poly_mul_pointwise(&tmp, &shat, uhat);
+  poly_invntt(&tmp);
+
+  poly_sub(&tmp, &tmp, vprime);
 
   poly_tomsg(m, &tmp);
 }
@@ -286,6 +417,37 @@ int cpapke_decRM(vector *decoded,//unsigned char *m,
   poly_invntt(&tmp);
 
   poly_sub(&tmp, &tmp, &vprime);
+
+//  poly_tomsg(m, &tmp);
+  poly_toRM(decoded,&tmp, RM_r, RM_m, RM_N);
+
+  return 0;
+}
+/*************************************************
+* Name:        cpapke_decRM_wocompr
+* 
+* Description: Decryption function of
+*              the CPA public-key encryption scheme underlying
+*              the NewHope KEMs
+*
+* Arguments:   - vector *decoded:        pointer to output decrypted message
+*              - const unsigned char *c:  pointer to input ciphertext
+*              - const unsigned char *sk: pointer to input secret key
+**************************************************/
+int cpapke_decRM_wocompr(vector *decoded,//unsigned char *m,
+                poly *uhat,
+                poly *vprime,
+                const unsigned char *sk)
+{
+  poly  tmp, shat;
+
+  poly_frombytes(&shat, sk);
+
+  //decode_c(uhat, vprime, c);
+  poly_mul_pointwise(&tmp, &shat, uhat);
+  poly_invntt(&tmp);
+
+  poly_sub(&tmp, &tmp, vprime);
 
 //  poly_tomsg(m, &tmp);
   poly_toRM(decoded,&tmp, RM_r, RM_m, RM_N);

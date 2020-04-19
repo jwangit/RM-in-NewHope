@@ -31,7 +31,9 @@ main()
     FILE                *fp_req, *fp_rsp;
     unsigned char       seed[48];
     unsigned char       entropy_input[48];
-    unsigned char       ct[CRYPTO_CIPHERTEXTBYTES], muhat[CRYPTO_BYTES];//, ss1[CRYPTO_BYTES];
+    unsigned char       muhat[CRYPTO_BYTES];//ct[CRYPTO_CIPHERTEXTBYTES],, ss1[CRYPTO_BYTES];
+	poly *uhat = (poly *)malloc(sizeof(poly));
+	poly *vprime = (poly *)malloc(sizeof(poly));
     int                 count;
 	int					done=0;
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
@@ -108,12 +110,12 @@ main()
         // NewHope-CPA-PKE ENCRYPTION
         randombytes(buf,NEWHOPE_SYMBYTES);
 		shake256(buf,2*NEWHOPE_SYMBYTES,buf,NEWHOPE_SYMBYTES);
-        encoded = cpapke_encRM(ct, buf, pk, buf+NEWHOPE_SYMBYTES);     
+        encoded = cpapke_encRM_wocompr(uhat, vprime, buf, pk, buf+NEWHOPE_SYMBYTES);     
 //        encoded = cpapke_encRM(ct, buf, pk, buf+49);     
         
         
         // NewHope-CPA-PKE DECRYPTION        
-        cpapke_decRM(decoded,ct,sk);
+        cpapke_decRM_wocompr(decoded, uhat, vprime, sk);
         
         if(ret_val = compare_vectors(encoded, decoded) != 0)
         {
