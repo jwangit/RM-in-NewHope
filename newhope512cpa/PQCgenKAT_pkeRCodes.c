@@ -31,14 +31,16 @@ main()
     FILE                *fp_req, *fp_rsp;
     unsigned char       seed[48];
     unsigned char       entropy_input[48];
-    unsigned char       ct[CRYPTO_CIPHERTEXTBYTES], muhat[CRYPTO_BYTES];//, ss1[CRYPTO_BYTES];
+    unsigned char       muhat[CRYPTO_BYTES];//ct[CRYPTO_CIPHERTEXTBYTES],, ss1[CRYPTO_BYTES];
+	poly *uhat = (poly *)malloc(sizeof(poly));
+	poly *vprime = (poly *)malloc(sizeof(poly));
     int                 count;
 	int					done=0;
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     int                 ret_val;
     unsigned char buf[2*NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
-	unsigned int NumofIteration = 4000000;
+	unsigned int NumofIteration = 1000;
 
     printf("Working...\n");
 	// Create the REQUEST file
@@ -100,11 +102,11 @@ main()
         // NewHope-CPA-PKE ENCRYPTION
         randombytes(buf,NEWHOPE_SYMBYTES);
 		shake256(buf,2*NEWHOPE_SYMBYTES,buf,NEWHOPE_SYMBYTES);
-        cpapke_enc(ct, buf, pk, buf+NEWHOPE_SYMBYTES);       
+        cpapke_enc_wocompr(uhat, vprime,buf, pk, buf+NEWHOPE_SYMBYTES);       
         //fprintBstr(fp_rsp, "musnt= ", buf, CRYPTO_BYTES);
         
         // NewHope-CPA-PKE DECRYPTION        
-         cpapke_dec(muhat, ct, sk);
+        cpapke_dec_wocompr(muhat, uhat, vprime, sk);
         //fprintBstr(fp_rsp, "muhat= ", muhat, CRYPTO_BYTES);
         if ( memcmp(muhat, buf, NEWHOPE_SYMBYTES) ) {
             framerrCount ++;
