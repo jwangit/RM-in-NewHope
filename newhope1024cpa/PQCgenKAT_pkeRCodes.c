@@ -34,7 +34,7 @@ main()
     unsigned char       muhat[CRYPTO_BYTES];//ct[CRYPTO_CIPHERTEXTBYTES],, ss1[CRYPTO_BYTES];
 	poly *uhat = (poly *)malloc(sizeof(poly));
 	poly *vprime = (poly *)malloc(sizeof(poly));
-    int                 count;
+    int                 count=0;
 	int					done=0;
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     int                 ret_val;
@@ -98,7 +98,7 @@ main()
     printf("The GMC took %f seconds to execute\n", time_taken);
 
     fprintf(fp_rsp, "framerrCount = %d,     ", framerrCount);
-	fprintf(fp_rsp, "TotlframCount = %d,     ", count+1);
+	fprintf(fp_rsp, "TotlframCount = %d,     ", count);
 	fprintf(fp_rsp, "framerrRate = %e\n", (1.0*framerrCount/NumofIteration) );
 	fflush(fp_rsp); 
     fclose(fp_rsp); 

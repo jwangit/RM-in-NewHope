@@ -99,7 +99,7 @@ main()
     printf("The GMC took %f seconds to execute\n", time_taken);
 
     fprintf(fp_rsp, "framerrCount = %d,     ", framerrCount);
-	fprintf(fp_rsp, "TotlframCount = %d,     ", count+1);
+	fprintf(fp_rsp, "TotlframCount = %d,     ", count);
 	fprintf(fp_rsp, "framerrRate = %e\n", (1.0*framerrCount/NumofIteration) );
 	fflush(fp_rsp); 
     fclose(fp_rsp);
