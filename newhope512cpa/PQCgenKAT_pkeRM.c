@@ -38,16 +38,16 @@ main()
 	int 				done=0;
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     int                 ret_val;
-   
+    time_t t; 
+
     unsigned int framerrCount = 0;
 	unsigned char buf[2*NEWHOPE_SYMBYTES];
-	unsigned int NumofIteration = 1000;
+	unsigned int NumofIteration = 100000;
     vector *encoded;
     vector *decoded = (vector *)malloc(sizeof(vector));
     decoded->length = NEWHOPE_N;
     decoded->values = (int *) malloc(sizeof(int)*NEWHOPE_N);
     
-
     printf("Working...\n");
     // Create the REQUEST file
     sprintf(fn_req, "PQCkemKAT_%d.req", NEWHOPE_N);
@@ -63,8 +63,9 @@ main()
     }
 
     //randomness source ; need more investigation???
+   srand((unsigned) time(&t));
    for (int i=0; i<48; i++)
-        entropy_input[i] = i;  
+        entropy_input[i] = rand()%256;  
     randombytes_init(entropy_input, NULL, 256);  
 	for (int i=0; i<NumofIteration; i++) {
         fprintf(fp_req, "count = %d\n", i);
@@ -82,8 +83,6 @@ main()
 	fprintf(fp_rsp, "K = %d,     ", NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
     fflush(fp_rsp); 
     
-
-	time_t t; 
     t = clock();
     do {
         if ( FindMarker(fp_req, "count = ") )

@@ -197,6 +197,7 @@ vector* poly_fromRM(poly *r, const unsigned char *msg, int par_r, int par_m, int
   m->length = par_k;
   vector* encoded;
 
+/*  // For RM(4,10),par_k=386. We append 130 0s after 256 bits of message.
   for ( unsigned int i = 0; i < NEWHOPE_SYMBYTES; i++)
   {
     for (unsigned int j = 0; j < 8; j++)
@@ -204,13 +205,20 @@ vector* poly_fromRM(poly *r, const unsigned char *msg, int par_r, int par_m, int
       m->values[8*i+j] = (msg[i]>>j)&1;
     }
   }
-  // For RM(4,10),par_k=286. We append 130 0s after 125 bits of message.
-//  m->values[384] = msg[48]&1;
-//  m->values[385] = (msg[48]>>1)&1;
   for (unsigned int i = 256; i < 386; i++)
   {
     m->values[i] = 0;
+  }*/
+  // For RM(4,10),par_k=386, we use code rate 386/1024.
+  for ( unsigned int i = 0; i < 48; i++)
+  {
+    for (unsigned int j = 0; j < 8; j++)
+    {
+      m->values[8*i+j] = (msg[i]>>j)&1;
+    }
   }
+  m->values[384] = msg[48]&1;
+  m->values[385] = (msg[48]>>1)&1;
 
   encoded = encode(m, par_r, par_m);
   for (unsigned i = 0; i < par_N; i++)

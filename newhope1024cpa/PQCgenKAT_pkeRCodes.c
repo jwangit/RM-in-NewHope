@@ -40,7 +40,8 @@ main()
     int                 ret_val;
     unsigned char buf[2*NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
-	unsigned int NumofIteration = 100;
+	unsigned int NumofIteration = 10000;
+	time_t t;
 
     printf("Working...\n");
 	// Create the REQUEST file
@@ -57,8 +58,9 @@ main()
     }
 
     //randomness source 
+	srand((unsigned) time(&t));
      for (int i=0; i<48; i++)
-        entropy_input[i] = i;    
+        entropy_input[i] = rand()%256;    
 
     randombytes_init(entropy_input, NULL, 256);
     for (int i=0; i<NumofIteration; i++) {
@@ -77,11 +79,11 @@ main()
 	fprintf(fp_rsp, "K = %d,     ", NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
     fflush(fp_rsp); 
 
-    time_t t;
+	int returnfscanf;    
     t = clock();
     do {
 		if ( FindMarker(fp_req, "count = ") )
-            fscanf(fp_req, "%d", &count);
+            returnfscanf = fscanf(fp_req, "%d", &count);
         else {
             done = 1;
             break;

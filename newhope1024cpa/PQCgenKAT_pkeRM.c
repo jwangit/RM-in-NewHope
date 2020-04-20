@@ -38,10 +38,11 @@ main()
 	int					done=0;
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     int                 ret_val;
-   
+    time_t t; 
+
     unsigned int framerrCount = 0;
-	unsigned char buf[2*NEWHOPE_SYMBYTES];//[2*NEWHOPE_SYMBYTES];
-	unsigned int NumofIteration = 1000;
+	unsigned char buf[49+NEWHOPE_SYMBYTES];//[2*NEWHOPE_SYMBYTES];
+	unsigned int NumofIteration = 10000;
     vector *encoded;
     vector *decoded = (vector *)malloc(sizeof(vector));
     decoded->length = NEWHOPE_N;
@@ -61,11 +62,11 @@ main()
         printf("Couldn't open <%s> for write\n", fn_rsp);
         return KAT_FILE_OPEN_ERROR;
     }
-
     
     //randomness source ; need more investigation???
+	srand((unsigned) time(&t));
     for (int i=0; i<48; i++)
-        entropy_input[i] = i;
+        entropy_input[i] = rand()%256;
 
     randombytes_init(entropy_input, NULL, 256);    
 	for (int i=0; i<NumofIteration; i++) {
@@ -84,11 +85,11 @@ main()
 	fprintf(fp_rsp, "K = %d,     ", NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
     fflush(fp_rsp); 
 
-	time_t t; 
+	int returnfscanf;
     t = clock();
     do {
         if ( FindMarker(fp_req, "count = ") )
-            fscanf(fp_req, "%d", &count);
+            returnfscanf = fscanf(fp_req, "%d", &count);
         else {
             done = 1;
             break;
@@ -109,10 +110,12 @@ main()
         
         // NewHope-CPA-PKE ENCRYPTION
         randombytes(buf,NEWHOPE_SYMBYTES);
-		shake256(buf,2*NEWHOPE_SYMBYTES,buf,NEWHOPE_SYMBYTES);
-        encoded = cpapke_encRM_wocompr(uhat, vprime, buf, pk, buf+NEWHOPE_SYMBYTES);     
-//        encoded = cpapke_encRM(ct, buf, pk, buf+49);     
-        
+		/**** append 130 many 0s after 256 bits of messages ****/
+		//shake256(buf,2*NEWHOPE_SYMBYTES,buf,NEWHOPE_SYMBYTES);
+        //encoded = cpapke_encRM_wocompr(uhat, vprime, buf, pk, buf+NEWHOPE_SYMBYTES);     
+		/**** generate 386 bits (approx. 8bytes) of random messages   ****/ 
+		shake256(buf,NEWHOPE_SYMBYTES+49,buf,NEWHOPE_SYMBYTES);
+        encoded = cpapke_encRM_wocompr(uhat, vprime, buf, pk, buf+49);         
         
         // NewHope-CPA-PKE DECRYPTION        
         cpapke_decRM_wocompr(decoded, uhat, vprime, sk);
@@ -132,7 +135,7 @@ main()
 
     fprintf(fp_rsp, "framerrCount = %d,     ", framerrCount);
 	fprintf(fp_rsp, "TotlframCount = %d,     ", count+1);
-	fprintf(fp_rsp, "framerrRate = %5.5f\n", (1.0*framerrCount/NumofIteration) );
+	fprintf(fp_rsp, "framerrRate = %e\n", (1.0*framerrCount/NumofIteration) );
 	fflush(fp_rsp); 
     fclose(fp_rsp);
 	fclose(fp_req);
