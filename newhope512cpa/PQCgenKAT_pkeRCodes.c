@@ -27,29 +27,24 @@ void	fprintBstr(FILE *fp, char *S, unsigned char *A, unsigned long long L);
 int
 main()
 {
-    char                fn_req[32],fn_rsp[32];
-    FILE                *fp_req, *fp_rsp;
+    char                fn_rsp[32];
+    FILE                *fp_rsp;
     unsigned char       seed[48];
     unsigned char       entropy_input[48];
     unsigned char       muhat[CRYPTO_BYTES];//ct[CRYPTO_CIPHERTEXTBYTES],, ss1[CRYPTO_BYTES];
 	poly *uhat = (poly *)malloc(sizeof(poly));
 	poly *vprime = (poly *)malloc(sizeof(poly));
-    int                 count;
+    int                 count=0;
 	int					done=0;
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     int                 ret_val;
     unsigned char buf[2*NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
 	unsigned int NumofIteration = 10000;
-	time_t t;
+	time_t t,t1;
 
     printf("Working...\n");
-	// Create the REQUEST file
-    sprintf(fn_req, "PQCkemKAT_%d.req", NEWHOPE_N);
-    if ( (fp_req = fopen(fn_req, "w+")) == NULL ) {
-        printf("Couldn't open <%s> for write\n", fn_req);
-        return KAT_FILE_OPEN_ERROR;
-    }
+	
     // Create the RESPONSE file
     sprintf(fn_rsp, "PQCpkeKAT_%d.rsp", NEWHOPE_N);
     if ( (fp_rsp = fopen(fn_rsp, "w+")) == NULL ) {
@@ -57,41 +52,20 @@ main()
         return KAT_FILE_OPEN_ERROR;
     }
 
-    //randomness source
-	srand((unsigned) time(&t));
-    for (int i=0; i<48; i++)
-        entropy_input[i] = rand()%256;
-    randombytes_init(entropy_input, NULL, 256);    
-    for (int i=0; i<NumofIteration; i++) {
-        fprintf(fp_req, "count = %d\n", i);
-        randombytes(seed, 48);
-        fprintBstr(fp_req, "seed = ", seed, 48);
-    }
-    fclose(fp_req);
-
-    //Create the RESPONSE file based on what's in the REQUEST file
-    if ( (fp_req = fopen(fn_req, "r")) == NULL ) {
-        printf("Couldn't open <%s> for read\n", fn_req);
-        return KAT_FILE_OPEN_ERROR;
-    }
 	fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE_RP);
 	fprintf(fp_rsp, "K = %d,     ", NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
     fflush(fp_rsp); 
 
     t = clock();
-	int returnfscanf;
     do {
-        if ( FindMarker(fp_req, "count = ") )
-            returnfscanf = fscanf(fp_req, "%d", &count);
-        else {
-            done = 1;
-            break;
-        }
-        if ( !ReadHex(fp_req, seed, 48, "seed = ") ) {
-            printf("ERROR: unable to read 'seed' from <%s>\n", fn_req);
-            return KAT_DATA_ERROR;
-        }
-        randombytes_init(seed, NULL, 256);
+		count++;
+		//randomness source
+		srand((unsigned) time(&t1));
+    	for (int i=0; i<48; i++)
+        	entropy_input[i] = rand()%256;
+    	randombytes_init(entropy_input, NULL, 256);    
+    	randombytes(seed, 48);
+		randombytes_init(seed, NULL, 256);
         
         // Generate the public/private keypair
         if ( (ret_val = crypto_kem_keypair(pk, sk)) != 0) {
@@ -119,17 +93,16 @@ main()
         //fprintf(fp_rsp, "\n");
         //fflush(fp_rsp);
         
-    } while ( !done );
+    } while ( count<NumofIteration );
     t = clock() - t;
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // calculate the elapsed time
     printf("The GMC took %f seconds to execute\n", time_taken);
 
     fprintf(fp_rsp, "framerrCount = %d,     ", framerrCount);
 	fprintf(fp_rsp, "TotlframCount = %d,     ", count+1);
-	fprintf(fp_rsp, "framerrRate = %5.5f\n", (1.0*framerrCount/NumofIteration) );
+	fprintf(fp_rsp, "framerrRate = %e\n", (1.0*framerrCount/NumofIteration) );
 	fflush(fp_rsp); 
     fclose(fp_rsp);
-	fclose(fp_req);
     return KAT_SUCCESS;
 }
 
