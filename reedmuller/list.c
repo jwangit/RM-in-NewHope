@@ -52,6 +52,7 @@ list *create_list() {
 
 int is_empty_list(list *l) {
 	return (l->head == NULL) && (l->tail == NULL) && (l->length == 0);
+//	return (l->head == NULL) || (l->tail == NULL) || (l->length == 0); // jwang
 }
 
 void append(list *l, void *item) {

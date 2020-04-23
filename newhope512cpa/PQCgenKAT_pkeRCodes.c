@@ -40,7 +40,7 @@ main()
     int                 ret_val;
     unsigned char buf[2*NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
-	unsigned int NumofIteration = 10000;
+	unsigned int NumofIteration = 100000;
 	time_t t;
 
     printf("Working...\n");
@@ -126,7 +126,7 @@ main()
 
     fprintf(fp_rsp, "framerrCount = %d,     ", framerrCount);
 	fprintf(fp_rsp, "TotlframCount = %d,     ", count+1);
-	fprintf(fp_rsp, "framerrRate = %5.5f\n", (1.0*framerrCount/NumofIteration) );
+	fprintf(fp_rsp, "framerrRate = %e\n", (1.0*framerrCount/NumofIteration) );
 	fflush(fp_rsp); 
     fclose(fp_rsp);
 	fclose(fp_req);

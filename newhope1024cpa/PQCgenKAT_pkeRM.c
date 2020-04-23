@@ -42,7 +42,7 @@ main()
 
     unsigned int framerrCount = 0;
 	unsigned char buf[49+NEWHOPE_SYMBYTES];//[2*NEWHOPE_SYMBYTES];
-	unsigned int NumofIteration = 10000;
+	unsigned int NumofIteration = 100000;
     vector *encoded;
     vector *decoded = (vector *)malloc(sizeof(vector));
     decoded->length = NEWHOPE_N;
