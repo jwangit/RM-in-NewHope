@@ -9,8 +9,8 @@
             "command": "/usr/bin/gcc",//"msbuild",
             "args": [
                 "-g",
-                "-O3",
-                "newhope512cpa/kem.c", 
+                "-O0",
+    /*            "newhope512cpa/kem.c", 
                 "newhope512cpa/cpapke.c",
                 "newhope512cpa/fips202.c",
                 "newhope512cpa/ntt.c", 
@@ -21,7 +21,7 @@
                 "newhope512cpa/verify.c",
                 //"newhope512cpa/PQCgenKAT_kem.c",
                 "newhope512cpa/PQCgenKAT_pkeRM.c",
-                //"newhope512cpa/PQCgenKAT_pkeRCodes.c",
+                //"newhope512cpa/PQCgenKAT_pkeRCodes.c",*/
      /*           "newhope1024cpa/kem.c", 
                 "newhope1024cpa/cpapke.c",
                 "newhope1024cpa/fips202.c",
@@ -34,8 +34,8 @@
                 //"newhope1024cpa/PQCgenKAT_kem.c",
                 "newhope1024cpa/PQCgenKAT_pkeRM.c",*/
                 //"newhope1024cpa/PQCgenKAT_pkeRCodes.c",
-                //"newhope1024cpa/testCenterbino.c",
-                //"reedmuller/mainRM.c",*/
+                //"newhope1024cpa/testCenterbino.c",*/
+                //"reedmuller/mainRM.c",
                 "reedmuller/common.c",
                 "reedmuller/list.c",
                 "reedmuller/matrix.c", 
@@ -44,17 +44,26 @@
                 "reedmuller/utils.c", 
                 "reedmuller/vector.c", 
                 "reedmuller/reedmullergmc.c",
+  
+/*                "reedmullerO3/matrix.c",
+                "reedmullerO3/combination.c",
+                "reedmullerO3/ksubset.c",
+                "reedmullerO3/vector.c",
+                "reedmullerO3/reedmuller.c",
+                "reedmullerO3/testrm.c",
+                "reedmullerO3/reedmullergmc.c",*/
+                
                 "-lm",
                 "-o",
                 "PQoutput.out",
-                "-I",
+           /*     "-I",
                 "/usr/local/ssl/include",
                 "-L",
                 "/usr/local/ssl/lib",
                 "-l",
                 "ssl",
                 "-l",
-                "crypto"
+                "crypto"*/
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

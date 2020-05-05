@@ -47,7 +47,7 @@ void reedmuller_free(reedmuller);
 
 int reedmuller_encode(reedmuller, int*, int*);
 
-int reedmuller_decode(reedmuller, int*, int*);
+//int reedmuller_decode(reedmuller, int*, int*);
 
 #endif
 

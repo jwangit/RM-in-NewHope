@@ -91,6 +91,15 @@ int vector_dotproduct(int p, int k, int *v1, int *v2)
   return dp;
 }
 
+int vectors_compare(int *v1, int *v2, int length) {
+	int i;
+	for (i = 0 ; i < length; i++) {
+		if (v1[i]  != v2[i] ) {
+			return v1[i] - v2[i];
+		}
+	}
+	return 0;
+}
 
 /*
  * $Log: vector.c,v $

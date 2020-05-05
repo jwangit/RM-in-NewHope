@@ -11,31 +11,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <math.h>
 #include "reedmuller.h"
 #include "common.h"
-
-#define OUTPUTINPUT
-static reedmuller rm = 0;
-static int *message = 0;
-static int *codeword = 0;
-
-
-static int read_vector_from_string(char *str, int elems, int *vector)
-{
-  int i;
-
-  for (i=0; i < elems; ++i) {
-    if (!(*str))
-      return FALSE;
-    vector[i] = str[i] - '0';
-  }
-
-  return TRUE;
-}
+#include <time.h>
+#include "reedmullergmc.h"
+#include "vector.h"
+//#define OUTPUTINPUT
+ reedmuller rm = 0;
+ int *message = 0;
+ int *codeword = 0;
+ int ret_val = 0;
 
 
-static void cleanup()
+void cleanup()
 {
   reedmuller_free(rm);
   free(message);
@@ -43,20 +32,16 @@ static void cleanup()
 }
 
 
-int main(int argc, char *argv[])
+int main()
 {
   int i, j;
   int r, m;
-
-  if (argc < 4) {
-    fprintf(stderr, "usage: %s r m message1 [message2 [message3 [...]]]\n",
-	    argv[0]);
-    exit(EXIT_FAILURE);
-  }
+  time_t t;
+  srand((unsigned) time(&t));
 
   /* try to create the reed-muller code and the vectors */
-  r = atoi(argv[1]);
-  m = atoi(argv[2]);
+  r = 4;
+  m = 10;
   if ((!(rm = reedmuller_init(r, m)))
       || (!(message = (int*) calloc(rm->k, sizeof(int))))
       || (!(codeword = (int*) calloc(rm->n, sizeof(int))))) {
@@ -77,17 +62,11 @@ int main(int argc, char *argv[])
   }
   printf("\n");
 #endif
-
-  for (i=3; i < argc; ++i) {
-    /* make sure that the message is of the appropriate length */
-    if (strlen(argv[i]) != rm->k) {
-      fprintf(stderr, "message %s has invalid length %zd (needs %d)\n",
-	      argv[i], strlen(argv[i]), rm->k);
-      continue;
-    }
-
+  t = clock();
     /* read in the message */
-    read_vector_from_string(argv[i], rm->k, message);
+  for (unsigned int l = 0; l < rm->k; l++) {
+		message[i] = rand() % 2;
+	}
 #ifdef OUTPUTINPUT
     for (j=0; j < rm->k; ++j)
       printf("%d", message[j]);
@@ -96,11 +75,39 @@ int main(int argc, char *argv[])
 
     /* encode it */
     reedmuller_encode(rm, message, codeword);
+#ifdef OUTPUTINPUT
     for (j=0; j < rm->n; ++j)
       printf("%d", codeword[j]);
     printf("\n");
-  }
+#endif
 
+/* ================================================================================
+	test GMC decoder
+================================================================================ */
+    Btree *T=NULL;
+    double *ptr = (double*)malloc(sizeof(double)*(rm->n)); 
+//    printf("REED MULLER CODES RM(%d,%d) \n", par_r,par_m);
+//    printf("received Y is ");    
+    for (size_t i = 0; i < rm->n; i++)
+    {
+        ptr[i] = (double)(1.0-2*(codeword[i]))+0.1 ;
+    //    printf("%5.1f ",ptr[i]);
+    }
+    printf("\n");
+
+    T = createTree(ptr, rm->r,  rm->m);
+
+    if (ret_val = vectors_compare(T->chat,codeword,rm->n) !=0)
+    {
+      printf("GMC decoding errors happen!\n");
+    }
+    
+    t = clock() - t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC; // calculate the elapsed time
+    printf("The GMC took %f seconds to execute", time_taken);
+ //   preorder(T);
+    destroyTree(T);
+    
   cleanup();
   exit(EXIT_SUCCESS);
 }

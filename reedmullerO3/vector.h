@@ -21,7 +21,7 @@ int *vector_copy(int, int*, int*);
 int *vector_clear(int, int*);
 
 int vector_dotproduct(int, int, int*, int*);
-
+int vectors_compare(int *v1, int *v2, int length);
 #endif
 
 /*
