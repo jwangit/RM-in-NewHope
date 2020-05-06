@@ -22,7 +22,7 @@
                 //"newhope512cpa/PQCgenKAT_kem.c",
                 "newhope512cpa/PQCgenKAT_pkeRM.c",
                 //"newhope512cpa/PQCgenKAT_pkeRCodes.c",*/
-     /*           "newhope1024cpa/kem.c", 
+                "newhope1024cpa/kem.c", 
                 "newhope1024cpa/cpapke.c",
                 "newhope1024cpa/fips202.c",
                 "newhope1024cpa/ntt.c", 
@@ -32,9 +32,11 @@
                 "newhope1024cpa/rng.c", 
                 "newhope1024cpa/verify.c",
                 //"newhope1024cpa/PQCgenKAT_kem.c",
-                "newhope1024cpa/PQCgenKAT_pkeRM.c",*/
+                //"newhope1024cpa/PQCgenKAT_pkeRM.c",
                 //"newhope1024cpa/PQCgenKAT_pkeRCodes.c",
-                //"newhope1024cpa/testCenterbino.c",*/
+                //"newhope1024cpa/testCenterbino.c",
+                //"newhope1024cpa/PQCsimpmodl_RCodes.c",
+                "newhope1024cpa/PQCsimpmodl_RM.c",
                 //"reedmuller/mainRM.c",
                 "reedmuller/common.c",
                 "reedmuller/list.c",
@@ -56,14 +58,14 @@
                 "-lm",
                 "-o",
                 "PQoutput.out",
-           /*     "-I",
+                "-I",
                 "/usr/local/ssl/include",
                 "-L",
                 "/usr/local/ssl/lib",
                 "-l",
                 "ssl",
                 "-l",
-                "crypto"*/
+                "crypto"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
