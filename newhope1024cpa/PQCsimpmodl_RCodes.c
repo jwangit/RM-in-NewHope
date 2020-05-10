@@ -25,8 +25,9 @@ int		ReadHex(FILE *infile, unsigned char *A, int Length, char *str);
 int
 main()
 {
-    char                fn_rsp[32];
-    FILE                *fp_rsp;
+	//save newhope additive noise
+    char                fn_rsp[32],fn_nhnoise[32];
+    FILE                *fp_nhnoise, *fp_rsp;
     unsigned char       muhat[CRYPTO_BYTES];//ct[CRYPTO_CIPHERTEXTBYTES],, ss1[CRYPTO_BYTES];
 
     poly *ehat = (poly *)malloc(sizeof(poly));
@@ -41,20 +42,26 @@ main()
     int                 ret_val;
     unsigned char buf[2*NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
-	unsigned int NumofIteration = 1000;
+	unsigned int NumofIteration = 10000;
 	time_t t;
 
     printf("Working...\n");
+	//save newhope additive noise
+	sprintf(fn_nhnoise,"RCnhnoise%d.txt",NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
+    if ( (fp_nhnoise = fopen(fn_nhnoise, "w+")) == NULL ) {
+        printf("Couldn't open <%s> for write\n", fn_nhnoise);
+        return KAT_FILE_OPEN_ERROR;
+    }
     // Create the RESPONSE file
     sprintf(fn_rsp, "PQCpkeKAT_%d.rsp", NEWHOPE_N);
-    if ( (fp_rsp = fopen(fn_rsp, "w+")) == NULL ) {
+	if ( (fp_rsp = fopen(fn_rsp, "w+")) == NULL ) {
         printf("Couldn't open <%s> for write\n", fn_rsp);
         return KAT_FILE_OPEN_ERROR;
     }
 	fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE_RP);
 	fprintf(fp_rsp, "K = %d,     ", NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
     fflush(fp_rsp); 
-
+	
     //randomness source 
 	srand((unsigned) time(&t));
 
@@ -88,7 +95,11 @@ main()
         poly_invntt(ehat);
         poly_add(ehat, ehat, eprimeprime);
         poly_add(v, v,ehat);
- 
+		//save newhope additive noise
+        for (unsigned int i = 0; i < NEWHOPE_N; i++)
+        {
+            fprintf(fp_nhnoise,"%d ",v->coeffs[i]);
+        }
         // NewHope-CPA-PKE DECRYPTION 
         poly_tomsg(muhat, v);
 
@@ -101,12 +112,13 @@ main()
     t = clock() - t;
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // calculate the elapsed time
     printf("The GMC took %f seconds to execute\n", time_taken);
-
     fprintf(fp_rsp, "framerrCount = %d,     ", framerrCount);
 	fprintf(fp_rsp, "TotlframCount = %d,     ", count);
 	fprintf(fp_rsp, "framerrRate = %e\n", (1.0*framerrCount/NumofIteration) );
 	fflush(fp_rsp); 
     fclose(fp_rsp); 
+	//save newhope additive noise
+	fclose(fp_nhnoise);
 	
     return KAT_SUCCESS;
 }

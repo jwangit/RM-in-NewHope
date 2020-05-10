@@ -28,8 +28,9 @@ int		ReadHex(FILE *infile, unsigned char *A, int Length, char *str);
 int
 main()
 {
-    char                fn_rsp[32];
-    FILE                *fp_rsp;
+	//save newhope additive noise
+	char                fn_rsp[32],fn_nhnoise[32];
+    FILE                *fp_nhnoise, *fp_rsp;
     unsigned char       muhat[CRYPTO_BYTES];//ct[CRYPTO_CIPHERTEXTBYTES],, ss1[CRYPTO_BYTES];
 
     poly *ehat = (poly *)malloc(sizeof(poly));
@@ -44,7 +45,7 @@ main()
     int                 ret_val;
     unsigned char buf[49+NEWHOPE_SYMBYTES];//[2*NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
-	unsigned int NumofIteration = 1000;
+	unsigned int NumofIteration = 10;
 	vector *encoded;
     vector *decoded = (vector *)malloc(sizeof(vector));
     decoded->length = NEWHOPE_N;
@@ -52,6 +53,13 @@ main()
 	time_t t;
 
     printf("Working...\n");
+	//save newhope additive noise
+	sprintf(fn_nhnoise,"RMnhnoise%d.txt",NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
+    sprintf(fn_rsp, "PQCpkeKAT_%d.rsp", NEWHOPE_N);
+    if ( (fp_nhnoise = fopen(fn_nhnoise, "w+")) == NULL ) {
+        printf("Couldn't open <%s> for write\n", fn_nhnoise);
+        return KAT_FILE_OPEN_ERROR;
+    }
     // Create the RESPONSE file
     sprintf(fn_rsp, "PQCpkeKAT_%d.rsp", NEWHOPE_N);
     if ( (fp_rsp = fopen(fn_rsp, "w+")) == NULL ) {
@@ -90,9 +98,9 @@ main()
             buf[i] = rand()%256;  
 
 		encoded = poly_fromRM(v, buf, RM_r, RM_m, RM_k);
-        poly_sampleKmodif(sprimehat, buf+NEWHOPE_SYMBYTES, 0);
-        poly_sampleKmodif(eprimehat, buf+NEWHOPE_SYMBYTES, 1);
-        poly_sampleKmodif(eprimeprime, buf+NEWHOPE_SYMBYTES, 2);
+        poly_sampleKmodif(sprimehat, buf+49, 0);
+        poly_sampleKmodif(eprimehat, buf+49, 1);
+        poly_sampleKmodif(eprimeprime, buf+49, 2);
 
         poly_ntt(sprimehat);
         poly_ntt(eprimehat);
@@ -103,7 +111,11 @@ main()
         poly_invntt(ehat);
         poly_add(ehat, ehat, eprimeprime);
         poly_add(v, v,ehat);
- 
+        //save newhope additive noise
+		for (unsigned int i = 0; i < NEWHOPE_N; i++)
+        {
+            fprintf(fp_nhnoise,"%d ",v->coeffs[i]);
+        }
         // NewHope-CPA-PKE DECRYPTION 
 		poly_toRM(decoded,v, RM_r, RM_m, RM_N);
 
@@ -124,7 +136,8 @@ main()
 	fprintf(fp_rsp, "framerrRate = %e\n", (1.0*framerrCount/NumofIteration) );
 	fflush(fp_rsp); 
     fclose(fp_rsp); 
-	
+	//save newhope additive noise
+	fclose(fp_nhnoise);
     return KAT_SUCCESS;
 }
 
