@@ -226,7 +226,8 @@ vector* poly_fromRM(poly *r, const unsigned char *msg, int par_r, int par_m, int
     temp = encoded->values[i];
     temp *= -2;
     temp += 1;
-    temp *= NEWHOPE_Q/4;
+    temp = ( temp>0 ) ? 3072 : -3073;// 10/05/2020  modify the modulation
+//    temp *= NEWHOPE_Q/4;
     temp += NEWHOPE_Q;
     r->coeffs[i] = temp;
   }
@@ -286,7 +287,8 @@ void poly_toRM(vector *decoded, const poly *x, int par_r, int par_m, int par_N)
     {
       
 //      printf("\n test double conversion x->coeff[i]=%.2f",inputGMC[i]);
-      inputGMC[i] = (double) ((inputGMC[i] - NEWHOPE_Q)/(NEWHOPE_Q/4));
+  //    inputGMC[i] = (double) ((inputGMC[i] - NEWHOPE_Q)/(NEWHOPE_Q/4));
+      inputGMC[i] = (double) ((inputGMC[i] - 12288)/(NEWHOPE_Q/4));  // 10/0502020 modify modulation
     }else if ( (inputGMC[i] < NEWHOPE_Q/2)&&(inputGMC[i] >= 0) )
     {
       inputGMC[i] = (double) (inputGMC[i]/(NEWHOPE_Q/4));
