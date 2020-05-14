@@ -267,7 +267,38 @@ void poly_tomsg(unsigned char *msg, const poly *x)
     msg[i>>3] |= t<<(i&7);
   }
 }
- 
+ /*************************************************
+* Name:        poly_tomsg
+* 
+* Description: Convert polynomial to 32-byte message
+*
+* Arguments:   - unsigned char *msg: pointer to output message
+*              - const poly *x:      pointer to input polynomial
+**************************************************/
+ void poly_tomsgdecisn(unsigned char *msg, const poly *x, int16_t tdecisn[])
+ {
+  unsigned int i;
+  uint16_t t;
+
+  for(i=0;i<32;i++)
+    msg[i] = 0;
+
+  for(i=0;i<256;i++)
+  {
+    t  = flipabs(x->coeffs[i+  0]);
+    t += flipabs(x->coeffs[i+256]);
+#if (NEWHOPE_N == 1024)
+    t += flipabs(x->coeffs[i+512]);
+    t += flipabs(x->coeffs[i+768]);
+    t = ((t - NEWHOPE_Q));
+#else
+    t = ((t - NEWHOPE_Q/2));
+#endif
+    tdecisn[i] = t;
+    t >>= 15;
+    msg[i>>3] |= t<<(i&7);
+  }
+}
 /*************************************************
 * Name:        poly_toRM
 * 
