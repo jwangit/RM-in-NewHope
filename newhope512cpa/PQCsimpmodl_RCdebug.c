@@ -119,8 +119,8 @@ main()
             {
                 //fprintf(fp_errlog, "Count = %d, index = %d, i>>3=%d, i&7=%d\n", count, i, (i>>3), (i&7)); 
                 //fprintf(fp_errlog, "hrdecision = %d\n", tempdec[i]);
-                fprintf(fp_errlog, "%d %d %d %d ", vmsg->coeffs[i], vmsg->coeffs[i+256],vmsg->coeffs[i+512],vmsg->coeffs[i+768]); 
-                fprintf(fp_errlog, "%d %d %d %d %d ", v->coeffs[i], v->coeffs[i+256],v->coeffs[i+512],v->coeffs[i+768], tempdec[i]); 
+                fprintf(fp_errlog, "%d %d ", vmsg->coeffs[i], vmsg->coeffs[i+256]); 
+                fprintf(fp_errlog, "%d %d %d ", v->coeffs[i], v->coeffs[i+256], tempdec[i]); 
                 fflush(fp_errlog);
             }
                  

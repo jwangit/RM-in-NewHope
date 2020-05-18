@@ -209,7 +209,8 @@ vector* poly_fromRM(poly *r, const unsigned char *msg, int par_r, int par_m, int
     temp = encoded->values[i];
     temp *= -2;
     temp += 1;
-    temp *= NEWHOPE_Q/4;
+    temp = ( temp>0 ) ? 3072 : -3073;// 10/05/2020  modify the modulation
+//    temp *= NEWHOPE_Q/4;
     temp += NEWHOPE_Q;
     r->coeffs[i] = temp;
   }
@@ -250,6 +251,39 @@ void poly_tomsg(unsigned char *msg, const poly *x)
   }
 }
  
+ /*************************************************
+* Name:        poly_tomsgdecisn
+* 
+* Description: Convert polynomial to 32-byte message and output the hard decision tdecisn
+*
+* Arguments:   - unsigned char *msg: pointer to output message
+*              - const poly *x:      pointer to input polynomial
+*              - int16_t tdecisn[] : save the hard decision
+**************************************************/
+ void poly_tomsgdecisn(unsigned char *msg, const poly *x, int16_t tdecisn[])
+ {
+  unsigned int i;
+  uint16_t t;
+
+  for(i=0;i<32;i++)
+    msg[i] = 0;
+
+  for(i=0;i<256;i++)
+  {
+    t  = flipabs(x->coeffs[i+  0]);
+    t += flipabs(x->coeffs[i+256]);
+#if (NEWHOPE_N == 1024)
+    t += flipabs(x->coeffs[i+512]);
+    t += flipabs(x->coeffs[i+768]);
+    t = ((t - NEWHOPE_Q));
+#else
+    t = ((t - NEWHOPE_Q/2));
+#endif
+    tdecisn[i] = t;
+    t >>= 15;
+    msg[i>>3] |= t<<(i&7);
+  }
+}
 /*************************************************
 * Name:        poly_toRM
 * 
@@ -269,7 +303,8 @@ void poly_toRM(vector *decoded, const poly *x, int par_r, int par_m, int par_N)
     {
       
 //      printf("\n test double conversion x->coeff[i]=%.2f",inputGMC[i]);
-      inputGMC[i] = (double) ((inputGMC[i] - NEWHOPE_Q)/(NEWHOPE_Q/4));
+//      inputGMC[i] = (double) ((inputGMC[i] - NEWHOPE_Q)/(NEWHOPE_Q/4));
+      inputGMC[i] = (double) ((inputGMC[i] - 12288)/(NEWHOPE_Q/4));  // 10/0502020 modify modulation
     }else if ( (inputGMC[i] < NEWHOPE_Q/2)&&(inputGMC[i] >= 0) )
     {
       inputGMC[i] = (double) (inputGMC[i]/(NEWHOPE_Q/4));

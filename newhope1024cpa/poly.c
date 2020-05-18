@@ -268,12 +268,13 @@ void poly_tomsg(unsigned char *msg, const poly *x)
   }
 }
  /*************************************************
-* Name:        poly_tomsg
+* Name:        poly_tomsgdecisn
 * 
-* Description: Convert polynomial to 32-byte message
+* Description: Convert polynomial to 32-byte message and output the hard decision tdecisn
 *
 * Arguments:   - unsigned char *msg: pointer to output message
 *              - const poly *x:      pointer to input polynomial
+*              - int16_t tdecisn[] : save the hard decision
 **************************************************/
  void poly_tomsgdecisn(unsigned char *msg, const poly *x, int16_t tdecisn[])
  {

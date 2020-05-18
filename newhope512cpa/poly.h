@@ -33,4 +33,5 @@ void poly_sampleK(poly *r, const unsigned char *seed, unsigned char nonce);
 void poly_sampleKmodif(poly *r, const unsigned char *seed, unsigned char nonce);
 vector* poly_fromRM(poly *r, const unsigned char *msg, int par_r, int par_m, int par_k);
 void poly_toRM(vector *decoded, const poly *x, int par_r, int par_m, int par_N);
+void poly_tomsgdecisn(unsigned char *msg, const poly *x, int16_t tdecisn[]);
 #endif
