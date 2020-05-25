@@ -15,6 +15,7 @@
 #include "time.h"
 #include "poly.h"
 #include "math.h"
+#include "../reedmuller/reedmullergmc.h"
 
 #define	MAX_MARKER_LEN		50
 #define KAT_SUCCESS          0
@@ -27,8 +28,8 @@ int
 main()
 {
 	//save newhope additive noise
-    char                fn_rsp[32],fn_errlog[32];
-    FILE                *fp_errlog, *fp_rsp;
+    char                fn_rsp[32],fn_errlogdetl[32], fn_errlog[32];
+    FILE                *fp_errlog, *fp_errlogdetl, *fp_rsp;
 
     poly *ehat = (poly *)malloc(sizeof(poly));
 	poly *shat = (poly *)malloc(sizeof(poly));
@@ -36,20 +37,21 @@ main()
     poly *eprimehat = (poly *)malloc(sizeof(poly));
 	poly *eprimeprime = (poly *)malloc(sizeof(poly));
     poly *v = (poly *)malloc(sizeof(poly));
-    poly *vmsg = (poly *)malloc(sizeof(poly));
+//    poly *vmsg = (poly *)malloc(sizeof(poly));
     unsigned char noiseseed[NEWHOPE_SYMBYTES] ;
 
     int                 count = 0;
     int                 ret_val;
     unsigned char buf[49+NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
-	unsigned int NumofIteration = 1000;
+	unsigned int NumofIteration = 100;
     vector *encoded;
     vector *decoded = (vector *)malloc(sizeof(vector));
     decoded->length = NEWHOPE_N;
     decoded->values = (int *) malloc(sizeof(int)*NEWHOPE_N);
 	time_t t;
     int16_t tempdec[386];
+    Btree* T;
     for (unsigned int i = 0; i < 386; i++)
     {
         tempdec[i] = 0;
@@ -66,6 +68,11 @@ main()
 	sprintf(fn_errlog,"RM%derrlog%d.txt",NEWHOPE_N,NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
     if ( (fp_errlog = fopen(fn_errlog, "w+")) == NULL ) {
         printf("Couldn't open <%s> for write\n", fn_errlog);
+        return KAT_FILE_OPEN_ERROR;
+    }
+    sprintf(fn_errlogdetl,"RM%derrlogdetl%d.txt",NEWHOPE_N,NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
+    if ( (fp_errlogdetl = fopen(fn_errlogdetl, "w+")) == NULL ) {
+        printf("Couldn't open <%s> for write\n", fn_errlogdetl);
         return KAT_FILE_OPEN_ERROR;
     }
     // Create the RESPONSE file
@@ -98,10 +105,7 @@ main()
         for (int i=0; i<81; i++)
             buf[i] = rand()%256;  
 		encoded = poly_fromRM(v, buf, RM_r, RM_m, RM_k);
-        for (unsigned int i = 0; i < NEWHOPE_N; i++)
-        {
-            vmsg->coeffs[i] = v->coeffs[i];
-        }
+
         poly_sampleKmodif(sprimehat, buf+49, 0);
         poly_sampleKmodif(eprimehat, buf+49, 1);
         poly_sampleKmodif(eprimeprime, buf+49, 2);
@@ -117,27 +121,29 @@ main()
         poly_add(v, v,ehat);
 		       
         // NewHope-CPA-PKE DECRYPTION 
-        poly_toRMdebug(decoded,v, RM_r, RM_m, RM_N, inputGMC);
+        T = poly_toRMdebug(decoded,v, RM_r, RM_m, RM_N, inputGMC);
         for (unsigned int k = 0; k < RM_N; k++)
         {
             deucl += (inputGMC[k]-(1.0-2.0*(encoded->values[k])))*(inputGMC[k]-(1.0-2.0*(encoded->values[k])));
 //                fprintf(fp_errlog,"%f ", inputGMC[k]);
 //                fprintf(fp_errlog,"%f ", inputGMC[k]);
         }
-        fprintf(fp_errlog,"count = %d, ", count);
-        fprintf(fp_errlog,"d^2 = %f, ", deucl);
+        /*fprintf(fp_errlog,"count = %d, ", count);
+        fprintf(fp_errlog,"d^2 = %f, ", deucl);*/
+        fprintf(fp_errlog,"%d ", count);
+        fprintf(fp_errlog,"%5.3f ", deucl);
         deucl = 0;
         if(ret_val = compare_vectors(encoded, decoded) != 0)
         {
     		framerrCount ++;
             fprintf(fp_errlog,"1\n");
+            travBTree(T,fp_errlogdetl);
         }else
         {
             fprintf(fp_errlog,"0\n");
         }
-        
 		destroy_vector(encoded);
-        
+        destroyTree(T);////////////////////////////25/05/2020 jwang
     } while ( count <NumofIteration );
     t = clock() - t;
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // calculate the elapsed time
@@ -149,7 +155,7 @@ main()
     fclose(fp_rsp); 
 	//save newhope additive noise
 	fclose(fp_errlog);
-	
+	fclose(fp_errlogdetl);
     return KAT_SUCCESS;
 }
 

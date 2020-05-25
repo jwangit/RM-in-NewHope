@@ -47,6 +47,8 @@ Btree *createTree(double *ptr, int8_t r, int8_t m)
     {
         T->lchild = NULL;
         T->rchild = NULL;
+        free(T->recYv);
+        free(T->recYu);
         T->recYv = NULL;
         T->recYu = NULL;
         // add decoding of repetition code here ; give T->chat
@@ -75,6 +77,8 @@ Btree *createTree(double *ptr, int8_t r, int8_t m)
     {
         T->lchild = NULL;
         T->rchild = NULL;
+        free(T->recYv);
+        free(T->recYu);
         T->recYv = NULL;
         T->recYu = NULL;
         // add decoding SPC code here
@@ -106,7 +110,6 @@ Btree *createTree(double *ptr, int8_t r, int8_t m)
         //T->recYv = rm_calc_f(ptr,  N);
         for (uint16_t i = 0; i < pus; i++)
         {
-
             T->recYv[i] =  sign(ptr[2*i]*ptr[2*i+1]) * fmin(fabs(ptr[2*i]),fabs(ptr[2*i+1]));
         }
         T->lchild = createTree(  T->recYv, (r-1), (m-1));
@@ -193,7 +196,43 @@ void preorder(Btree *T)
         preorder(((T)->rchild));        
     }
 }
-
+void travBTree(Btree *T, FILE *fp)
+{
+    uint8_t r,m;
+    if(T != NULL)
+    {
+        r = (T)->r;
+        m = (T)->m;
+        double * recYv = (T->recYv);
+        double * recYu = (T->recYu);
+        travBTree(((T)->lchild),fp);        
+        travBTree(((T)->rchild),fp);
+//        fprintf(fp,"R(%d, %d), chat=%d",r,m,T->chat[0]);
+        fprintf(fp,"%d %d %d",r,m,T->chat[0]);
+        for (unsigned int i = 1; i < (1<<(m)); i++)
+        {
+            fprintf(fp,", %d",T->chat[i]);
+        }
+        if ( (recYv != NULL) && (recYu != NULL) )
+        {
+//            fprintf(fp, ". Yv=%5.3f",*(recYv++));
+            fprintf(fp, " %5.3f",*(recYv++));
+            for (size_t i = 1; i < (1<<(m-1)); i++)
+            {
+                fprintf(fp, " %5.3f",*(recYv++));
+            }
+//            fprintf(fp, ". Yu=%5.3f",*(recYu++));
+            fprintf(fp, " %5.3f",*(recYu++));
+            for (size_t i = 1; i < (1<<(m-1)); i++)
+            {
+                fprintf(fp, " %5.3f",*(recYu++));
+            }
+        }
+        
+        fprintf(fp,"\n");
+        fflush(fp);
+    }
+}
 void destroyTree(Btree *T)
 {
     Btree *pl,*pr;

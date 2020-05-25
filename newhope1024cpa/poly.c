@@ -337,7 +337,6 @@ void poly_toRM(vector *decoded, const poly *x, int par_r, int par_m, int par_N)
     }
     destroyTree(T);    
     
-  
 } 
 
 /*************************************************
@@ -349,15 +348,14 @@ void poly_toRM(vector *decoded, const poly *x, int par_r, int par_m, int par_N)
 *              - const poly *x:      pointer to input polynomial
 *              - int par_r, int par_m: RM parameters
 **************************************************/
-void poly_toRMdebug(vector *decoded, const poly *x, int par_r, int par_m, int par_N, double inputGMC[])
+Btree* poly_toRMdebug(vector *decoded, const poly *x, int par_r, int par_m, int par_N, double inputGMC[])
 {
  // double inputGMC[NEWHOPE_N];
   for (unsigned int i = 0; i < par_N; i++)
   {
     inputGMC[i] = 1.0*x->coeffs[i];
     if( (inputGMC[i] < NEWHOPE_Q) && (inputGMC[i]>= (NEWHOPE_Q/2)) )
-    {
-      
+    {  
 //      printf("\n test double conversion x->coeff[i]=%.2f",inputGMC[i]);
   //    inputGMC[i] = (double) ((inputGMC[i] - NEWHOPE_Q)/(NEWHOPE_Q/4));
       inputGMC[i] = (double) ((inputGMC[i] - 12288)/(NEWHOPE_Q/4));  // 10/0502020 modify modulation
@@ -375,11 +373,10 @@ void poly_toRMdebug(vector *decoded, const poly *x, int par_r, int par_m, int pa
     {
       decoded->values[i] = T->chat[i];
     }
-    destroyTree(T);    
+    return T;
+    //destroyTree(T);    
     
-  
-} 
-
+}
 /*************************************************
 * Name:        poly_uniform
 * 
@@ -400,7 +397,7 @@ void poly_uniform(poly *a, const unsigned char *seed)
 
   for(i=0;i<NEWHOPE_SYMBYTES;i++)
     extseed[i] = seed[i];
-
+  
   for(i=0;i<NEWHOPE_N/64;i++) /* generate a in blocks of 64 coefficients */
   {
     ctr = 0;

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "params.h"
 #include "../reedmuller/vector.h"
+#include "../reedmuller/reedmullergmc.h"
 /* 
  * Elements of R_q = Z_q[X]/(X^n + 1). Represents polynomial
  * coeffs[0] + X*coeffs[1] + X^2*xoeffs[2] + ... + X^{n-1}*coeffs[n-1] 
@@ -34,6 +35,6 @@ void poly_sampleKmodif(poly *r, const unsigned char *seed, unsigned char nonce);
 vector* poly_fromRM(poly *r, const unsigned char *msg, int par_r, int par_m, int par_k);
 void poly_toRM(vector *decoded, const poly *x, int par_r, int par_m, int par_N);
 void poly_tomsgdecisn(unsigned char *msg, const poly *x, int16_t tdecisn[]);
-void poly_toRMdebug(vector *decoded, const poly *x, int par_r, int par_m, int par_N, double inputGMC[]);
+Btree* poly_toRMdebug(vector *decoded, const poly *x, int par_r, int par_m, int par_N, double inputGMC[]);
 
 #endif
