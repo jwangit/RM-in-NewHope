@@ -14,6 +14,7 @@
 
 typedef struct treeNode
 {
+    
     uint8_t r, m;
     double *recYv;
     double *recYu;
@@ -23,7 +24,7 @@ typedef struct treeNode
 }Btree;
 
 Btree *createTree(double *ptr, int8_t r, int8_t m);
-void travBTree(Btree *T, FILE *fp);
+void travBTree(Btree *T, FILE *fpC, FILE *fpY, unsigned int pos);
 void preorder(Btree *T);
 void destroyTree(Btree *T);
 
