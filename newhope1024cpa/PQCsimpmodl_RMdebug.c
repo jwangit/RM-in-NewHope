@@ -28,8 +28,8 @@ int
 main()
 {
 	//save newhope additive noise
-    char                fn_rsp[32],fn_errlogdetl[32], fn_errlog[32];
-    FILE                *fp_errlog, *fp_errlogdetl, *fp_rsp;
+    char                fn_rsp[32],fn_errlogC[32],fn_errlogY[32], fn_errlog[32];
+    FILE                *fp_errlog, *fp_errlogC, *fp_errlogY, *fp_rsp;
 
     poly *ehat = (poly *)malloc(sizeof(poly));
 	poly *shat = (poly *)malloc(sizeof(poly));
@@ -63,6 +63,35 @@ main()
         inputGMC[i] = 0;
     }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/*double ptr[4] = {-0.51444,	0.59502,	-0.21454,	0.1671};
+int temp1 = 0;
+int smallestV = 0;
+int smallestInd = 0;
+int8_t chat[4];
+        // add decoding SPC code here
+        for (int i = 0; i < 4; i++)
+        {
+            chat[i] = ptr[i] < 0;
+            temp1 += (chat[i]);
+           // T->chathat->values[i] = ptr[i]<0;
+           // temp1 += (T->chathat->values[i]); 
+        }
+        if ( (temp1%2) == 1)
+        {
+            smallestV = fabs(ptr[0]);
+            smallestInd = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                if (ptr[i] < smallestV) {
+                    smallestV = ptr[i];
+                    smallestInd = i;
+                }
+            }
+            chat[smallestInd] ^= 0X01;
+            //T->chathat->values[smallestInd] ^= 0X01;
+        }*/
+////////////////////////////////////////////////////////////////////////////////////////////////////
     printf("Working...\n");
 	//save newhope additive noise
 	sprintf(fn_errlog,"RM%derrlog%d.txt",NEWHOPE_N,NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
@@ -70,9 +99,14 @@ main()
         printf("Couldn't open <%s> for write\n", fn_errlog);
         return KAT_FILE_OPEN_ERROR;
     }
-    sprintf(fn_errlogdetl,"RM%derrlogdetl%d.txt",NEWHOPE_N,NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
-    if ( (fp_errlogdetl = fopen(fn_errlogdetl, "w+")) == NULL ) {
-        printf("Couldn't open <%s> for write\n", fn_errlogdetl);
+    sprintf(fn_errlogC,"RM%derrlogC%d.txt",NEWHOPE_N,NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
+    if ( (fp_errlogC = fopen(fn_errlogC, "w+")) == NULL ) {
+        printf("Couldn't open <%s> for write\n", fn_errlogC);
+        return KAT_FILE_OPEN_ERROR;
+    }
+    sprintf(fn_errlogY,"RM%derrlogY%d.txt",NEWHOPE_N,NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
+    if ( (fp_errlogY = fopen(fn_errlogY, "w+")) == NULL ) {
+        printf("Couldn't open <%s> for write\n", fn_errlogY);
         return KAT_FILE_OPEN_ERROR;
     }
     // Create the RESPONSE file
@@ -86,7 +120,7 @@ main()
     fflush(fp_rsp); 
 	
     //randomness source 
-	srand((unsigned) time(&t));
+	//srand((unsigned) time(&t));
 
 	int returnfscanf;    
     t = clock();
@@ -137,7 +171,7 @@ main()
         {
     		framerrCount ++;
             fprintf(fp_errlog,"1\n");
-            travBTree(T,fp_errlogdetl);
+            travBTree(T,fp_errlogC,fp_errlogY, 1);
         }else
         {
             fprintf(fp_errlog,"0\n");
@@ -155,7 +189,8 @@ main()
     fclose(fp_rsp); 
 	//save newhope additive noise
 	fclose(fp_errlog);
-	fclose(fp_errlogdetl);
+	fclose(fp_errlogC);
+    fclose(fp_errlogY);
     return KAT_SUCCESS;
 }
 
