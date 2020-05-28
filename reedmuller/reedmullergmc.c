@@ -29,7 +29,7 @@ Btree *createTree(double *ptr, int8_t r, int8_t m)
     double Ysum = 0;
     int temp = 0;
     int temp1 = 0;
-    int smallestV = 0;
+    double smallestV = 0;
     int smallestInd = 0;
     Btree *T;
     T = (Btree *) malloc(sizeof(Btree));
@@ -95,8 +95,8 @@ Btree *createTree(double *ptr, int8_t r, int8_t m)
             smallestInd = 0;
             for (int i = 0; i < N; i++)
             {
-                if (ptr[i] < smallestV) {
-                    smallestV = ptr[i];
+                if (fabs(ptr[i]) < smallestV) {
+                    smallestV = fabs(ptr[i]);
                     smallestInd = i;
                 }
             }
@@ -216,10 +216,9 @@ void travBTree(Btree *T, FILE *fpC, FILE *fpY, unsigned int pos)//preorder
         if ( (recYv != NULL) && (recYu != NULL) )
         {
 //            fprintf(fp, ". Yv=%5.3f",*(recYv++));
-            fprintf(fpY, "%d ",pos);
             for (size_t i = 0; i < (1<<(m-1)); i++)
             {
-                fprintf(fpY, "%5.5f ",*(recYv++));
+                fprintf(fpY, " %5.5f",*(recYv++));
             }
 //            fprintf(fp, ". Yu=%5.3f",*(recYu++));
 //            fprintf(fp, " %5.3f",*(recYu++));
