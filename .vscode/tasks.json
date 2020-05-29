@@ -10,7 +10,7 @@
             "args": [
                 "-g",
                 "-O0",
-/*                "newhope512cpa/kem.c", 
+                "newhope512cpa/kem.c", 
                 "newhope512cpa/cpapke.c",
                 "newhope512cpa/fips202.c",
                 "newhope512cpa/ntt.c", 
@@ -22,8 +22,9 @@
                 //"newhope512cpa/PQCgenKAT_kem.c",
                 //"newhope512cpa/PQCgenKAT_pkeRM.c",
                 //"newhope512cpa/PQCgenKAT_pkeRCodes.c",
-                "newhope512cpa/PQCsimpmodl_RCdebug.c",*/
-                "newhope1024cpa/kem.c", 
+                //"newhope512cpa/PQCsimpmodl_RCdebug.c",
+                "newhope512cpa/PQCsimpmodl_RMdebug.c",
+/*                "newhope1024cpa/kem.c", 
                 "newhope1024cpa/cpapke.c",
                 "newhope1024cpa/fips202.c",
                 "newhope1024cpa/ntt.c", 
@@ -39,7 +40,7 @@
                 //"newhope1024cpa/PQCsimpmodl_RCodes.c",
                 //"newhope1024cpa/PQCsimpmodl_RM.c",
                 //"newhope1024cpa/PQCsimpmodl_RCdebug.c",
-                "newhope1024cpa/PQCsimpmodl_RMdebug.c",
+                "newhope1024cpa/PQCsimpmodl_RMdebug.c",*/
                 //"reedmuller/mainRM.c",
                 "reedmuller/common.c",
                 "reedmuller/list.c",

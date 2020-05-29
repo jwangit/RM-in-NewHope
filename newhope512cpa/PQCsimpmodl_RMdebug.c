@@ -31,34 +31,33 @@ main()
     char                fn_rsp[32],fn_errlogC[32],fn_errlogY[32], fn_errlog[32];
     FILE                *fp_errlog, *fp_errlogC, *fp_errlogY, *fp_rsp;
 
+    unsigned char       muhat[CRYPTO_BYTES];//ct[CRYPTO_CIPHERTEXTBYTES],, ss1[CRYPTO_BYTES];
+
     poly *ehat = (poly *)malloc(sizeof(poly));
 	poly *shat = (poly *)malloc(sizeof(poly));
     poly *sprimehat = (poly *)malloc(sizeof(poly));
     poly *eprimehat = (poly *)malloc(sizeof(poly));
 	poly *eprimeprime = (poly *)malloc(sizeof(poly));
     poly *v = (poly *)malloc(sizeof(poly));
-//    poly *vmsg = (poly *)malloc(sizeof(poly));
     unsigned char noiseseed[NEWHOPE_SYMBYTES] ;
 
     int                 count = 0;
     int                 ret_val;
-    unsigned char buf[49+NEWHOPE_SYMBYTES];
+    unsigned char buf[2*NEWHOPE_SYMBYTES];//[2*NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
-	unsigned int NumofIteration = 100;
-    vector *encoded;
+	unsigned int NumofIteration = 10000;
+	vector *encoded;
     vector *decoded = (vector *)malloc(sizeof(vector));
     decoded->length = NEWHOPE_N;
     decoded->values = (int *) malloc(sizeof(int)*NEWHOPE_N);
 	time_t t;
-    Btree* T;
-
-    double deucl = 0;
+	Btree* T;
+	double deucl = 0;
     double inputGMC[NEWHOPE_N];
     for (unsigned int i = 0; i < NEWHOPE_N; i++)
     {
         inputGMC[i] = 0;
     }
-
 
     printf("Working...\n");
 	//save newhope additive noise
@@ -86,7 +85,7 @@ main()
 	fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE_RM);
 	fprintf(fp_rsp, "K = %d,     ", NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
     fflush(fp_rsp); 
-	
+
     //randomness source 
 	srand((unsigned) time(&t));
 
@@ -103,14 +102,14 @@ main()
         poly_sampleKmodif(ehat, noiseseed, 1);
         poly_ntt(ehat);
         
-        // NewHope-CPA-PKE ENCRYPTION
-        for (int i=0; i<81; i++)
-            buf[i] = rand()%256;  
-		encoded = poly_fromRM(v, buf, RM_r, RM_m, RM_k);
 
-        poly_sampleKmodif(sprimehat, buf+49, 0);
-        poly_sampleKmodif(eprimehat, buf+49, 1);
-        poly_sampleKmodif(eprimeprime, buf+49, 2);
+        for (int i=0; i<64; i++)
+            buf[i] = rand()%256;  
+
+		encoded = poly_fromRM(v, buf, RM_r, RM_m, RM_k);
+        poly_sampleKmodif(sprimehat, buf+NEWHOPE_SYMBYTES, 0);
+        poly_sampleKmodif(eprimehat, buf+NEWHOPE_SYMBYTES, 1);
+        poly_sampleKmodif(eprimeprime, buf+NEWHOPE_SYMBYTES, 2);
 
         poly_ntt(sprimehat);
         poly_ntt(eprimehat);
@@ -121,9 +120,9 @@ main()
         poly_invntt(ehat);
         poly_add(ehat, ehat, eprimeprime);
         poly_add(v, v,ehat);
-		       
-        // NewHope-CPA-PKE DECRYPTION 
-        T = poly_toRMdebug(decoded,v, RM_r, RM_m, RM_N, inputGMC);
+ 	
+	 	// NewHope-CPA-PKE DECRYPTION 
+		T = poly_toRMdebug(decoded,v, RM_r, RM_m, RM_N, inputGMC);
         for (unsigned int k = 0; k < RM_N; k++)
         {
             deucl += (inputGMC[k]-(1.0-2.0*(encoded->values[k])))*(inputGMC[k]-(1.0-2.0*(encoded->values[k])));
@@ -131,7 +130,7 @@ main()
 
         fprintf(fp_errlog,"%d ", count);
         fprintf(fp_errlog,"%5.3f ", deucl);
-        deucl = 0;
+		deucl = 0;
         if(ret_val = compare_vectors(encoded, decoded) != 0)
         {
     		framerrCount ++;
@@ -142,7 +141,8 @@ main()
             fprintf(fp_errlog,"0\n");
         }
 		destroy_vector(encoded);
-        destroyTree(T);////////////////////////////25/05/2020 jwang
+        destroyTree(T);////////////////////////////29/05/2020 jwang
+        
     } while ( count <NumofIteration );
     t = clock() - t;
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // calculate the elapsed time
