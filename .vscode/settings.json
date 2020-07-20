@@ -4,6 +4,8 @@
         "cpapke.h": "c",
         "PQCgenKAT_pkeRC.C": "cpp",
         "stdio.h": "c",
-        "vector.h": "c"
+        "vector.h": "c",
+        "cmath": "c",
+        "*.tcc": "c"
     }
 }

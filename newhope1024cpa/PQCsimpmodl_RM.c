@@ -55,7 +55,6 @@ main()
     printf("Working...\n");
 	//save newhope additive noise
 	sprintf(fn_nhnoise,"RMnhnoise%d.txt",NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
-    sprintf(fn_rsp, "PQCpkeKAT_%d.rsp", NEWHOPE_N);
     if ( (fp_nhnoise = fopen(fn_nhnoise, "w+")) == NULL ) {
         printf("Couldn't open <%s> for write\n", fn_nhnoise);
         return KAT_FILE_OPEN_ERROR;

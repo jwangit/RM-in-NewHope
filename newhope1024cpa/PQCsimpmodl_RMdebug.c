@@ -44,7 +44,7 @@ main()
     int                 ret_val;
     unsigned char buf[49+NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
-	unsigned int NumofIteration = 100;
+	unsigned int NumofIteration = 10000;
     vector *encoded;
     vector *decoded = (vector *)malloc(sizeof(vector));
     decoded->length = NEWHOPE_N;
@@ -88,7 +88,7 @@ main()
     fflush(fp_rsp); 
 	
     //randomness source 
-	srand((unsigned) time(&t));
+	//srand((unsigned) time(&t));
 
 	int returnfscanf;    
     t = clock();
