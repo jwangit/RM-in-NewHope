@@ -27,6 +27,7 @@ Btree *createTree(double *ptr, int8_t r, int8_t m);
 void travBTree(Btree *T, FILE *fpC, FILE *fpY, unsigned int pos);
 void preorder(Btree *T);
 void destroyTree(Btree *T);
+Btree *softDecSimp(double *ptr, int8_t r, int8_t m);
 
 int sign(double x);
 double* rm_calc_f(double *recY, uint16_t n);
