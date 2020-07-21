@@ -32,9 +32,11 @@ void poly_sub(poly *r, const poly *a, const poly *b);
 //jwang
 void poly_sampleK(poly *r, const unsigned char *seed, unsigned char nonce);
 void poly_sampleKmodif(poly *r, const unsigned char *seed, unsigned char nonce);
+double poly_sampleKmodif2(poly *r, const unsigned char *seed, unsigned char nonce, double scale);
 vector* poly_fromRM(poly *r, const unsigned char *msg, int par_r, int par_m, int par_k);
 void poly_toRM(vector *decoded, const poly *x, int par_r, int par_m, int par_N);
 void poly_tomsgdecisn(unsigned char *msg, const poly *x, int16_t tdecisn[]);
 Btree* poly_toRMdebug(vector *decoded, const poly *x, int par_r, int par_m, int par_N, double inputGMC[]);
-
+vector* poly_fromRM2(poly *r, const unsigned char *msg, int par_r, int par_m, int par_k);
+void poly_toRM2(vector *decoded, const poly *x, int par_r, int par_m, int par_N, double sigma, int Neighbour);
 #endif

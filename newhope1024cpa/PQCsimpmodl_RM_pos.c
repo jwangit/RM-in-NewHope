@@ -14,8 +14,9 @@
 #include "cpapke.h"
 #include "time.h"
 #include "poly.h"
-#include "math.h"
-#include "../reedmuller/reedmullergmc.h"
+#include "../reedmuller/vector.h"
+//#include "../reedmuller/reedmullergmc.h"
+//#include "../reedmuller/reedmuller.h"
 
 #define	MAX_MARKER_LEN		50
 #define KAT_SUCCESS          0
@@ -28,8 +29,9 @@ int
 main()
 {
 	//save newhope additive noise
-    char                fn_rsp[32],fn_errlogC[32],fn_errlogY[32], fn_errlog[32];
-    FILE                *fp_errlog, *fp_errlogC, *fp_errlogY, *fp_rsp;
+	char                fn_rsp[32],fn_nhnoise[32];
+    FILE                *fp_nhnoise, *fp_rsp;
+    unsigned char       muhat[CRYPTO_BYTES];//ct[CRYPTO_CIPHERTEXTBYTES],, ss1[CRYPTO_BYTES];
 
     poly *ehat = (poly *)malloc(sizeof(poly));
 	poly *shat = (poly *)malloc(sizeof(poly));
@@ -37,78 +39,106 @@ main()
     poly *eprimehat = (poly *)malloc(sizeof(poly));
 	poly *eprimeprime = (poly *)malloc(sizeof(poly));
     poly *v = (poly *)malloc(sizeof(poly));
-//    poly *vmsg = (poly *)malloc(sizeof(poly));
     unsigned char noiseseed[NEWHOPE_SYMBYTES] ;
 
     int                 count = 0;
     int                 ret_val;
-    unsigned char buf[49+NEWHOPE_SYMBYTES];
+    unsigned char buf[49+NEWHOPE_SYMBYTES];//[2*NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
-	unsigned int NumofIteration = 10000;
-    vector *encoded;
+	unsigned int NumofIteration = 1000;
+	vector *encoded;
     vector *decoded = (vector *)malloc(sizeof(vector));
     decoded->length = NEWHOPE_N;
     decoded->values = (int *) malloc(sizeof(int)*NEWHOPE_N);
 	time_t t;
-    Btree* T;
-
-    double deucl = 0;
-    double inputGMC[NEWHOPE_N];
-    for (unsigned int i = 0; i < NEWHOPE_N; i++)
-    {
-        inputGMC[i] = 0;
-    }
-
+	double Hfad=0;
+	double scale = NEWHOPE_Q/2.0;
+	double tempH = 0;
+	double binopara = 1.0*(NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
+	double sigma = sqrt(binopara/2);
 
     printf("Working...\n");
 	//save newhope additive noise
-	sprintf(fn_errlog,"RM%derrlog%d.txt",NEWHOPE_N,NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
-    if ( (fp_errlog = fopen(fn_errlog, "w+")) == NULL ) {
-        printf("Couldn't open <%s> for write\n", fn_errlog);
-        return KAT_FILE_OPEN_ERROR;
-    }
-    sprintf(fn_errlogC,"RM%derrlogC%d.txt",NEWHOPE_N,NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
-    if ( (fp_errlogC = fopen(fn_errlogC, "w+")) == NULL ) {
-        printf("Couldn't open <%s> for write\n", fn_errlogC);
-        return KAT_FILE_OPEN_ERROR;
-    }
-    sprintf(fn_errlogY,"RM%derrlogY%d.txt",NEWHOPE_N,NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
-    if ( (fp_errlogY = fopen(fn_errlogY, "w+")) == NULL ) {
-        printf("Couldn't open <%s> for write\n", fn_errlogY);
+	sprintf(fn_nhnoise,"RMnhnoise%d.txt",NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
+    if ( (fp_nhnoise = fopen(fn_nhnoise, "w+")) == NULL ) {
+        printf("Couldn't open <%s> for write\n", fn_nhnoise);
         return KAT_FILE_OPEN_ERROR;
     }
     // Create the RESPONSE file
     sprintf(fn_rsp, "PQCpkeKAT_%d.rsp", NEWHOPE_N);
-	if ( (fp_rsp = fopen(fn_rsp, "w+")) == NULL ) {
+    if ( (fp_rsp = fopen(fn_rsp, "w+")) == NULL ) {
         printf("Couldn't open <%s> for write\n", fn_rsp);
         return KAT_FILE_OPEN_ERROR;
     }
-	fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE_RM);
-    double binopara = 1.0*(NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
+	fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE_RP);
 	fprintf(fp_rsp, "K = %d,     ", NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
     fflush(fp_rsp); 
-	
+
     //randomness source 
-	//srand((unsigned) time(&t));
+	srand((unsigned) time(&t));
 
 	int returnfscanf;    
     t = clock();
+
+	double pdf[1000];
+	double x= 0;
+	double rep = 2.0/1000;
     do {
         count++;
         // Generate the public/private keypair
         //randombytes(z, NEWHOPE_SYMBYTES);
         for (int i=0; i<32; i++)
             noiseseed[i] = rand()%256;  
+		Hfad = 0;
+		sigma = sqrt(binopara/2);
         poly_sampleKmodif(shat, noiseseed, 0);
+		for (int j = 0; j < NEWHOPE_N; j++)
+		{
+			tempH = (shat->coeffs[j]-NEWHOPE_Q )/scale;
+			Hfad += tempH * tempH;	
+		}
         poly_ntt(shat);
         poly_sampleKmodif(ehat, noiseseed, 1);
-        poly_ntt(ehat);
-        
+		for (int j = 0; j < NEWHOPE_N; j++)
+		{
+			tempH = (ehat->coeffs[j]-NEWHOPE_Q)/scale;
+			Hfad += tempH * tempH;	
+		}
+		tempH = 1/scale;
+		Hfad += tempH * tempH;
+		Hfad = sqrt(Hfad);
+		sigma *= Hfad;
+        poly_ntt(ehat);   
+	/*	
+		for (int i = 0; i < 1000; i++)
+		{
+			x += rep;
+			pdf[i] = transPr(x,0,sigma,10);
+	
+			fprintf(fp_nhnoise,"%5.1f\n",pdf[i]);
+		}
+		 x= 0;
+		for (int i = 0; i < 1000; i++)
+		{
+			x += rep;
+			pdf[i] = transPr(x,1,sigma,10);
+
+			fprintf(fp_nhnoise,"%5.1f\n",pdf[i]);
+		}*/
+
+
         // NewHope-CPA-PKE ENCRYPTION
+	//	randombytes(buf,NEWHOPE_SYMBYTES);
+		/**** append 130 many 0s after 256 bits of messages ****/
+		//shake256(buf,2*NEWHOPE_SYMBYTES,buf,NEWHOPE_SYMBYTES);
+        //encoded = cpapke_encRM_wocompr(uhat, vprime, buf, pk, buf+NEWHOPE_SYMBYTES);     
+		/**** generate 386 bits (approx. 8bytes) of random messages   ****/ 
+	//	shake256(buf,NEWHOPE_SYMBYTES+49,buf,NEWHOPE_SYMBYTES);
+    //    encoded = cpapke_encRM_wocompr(uhat, vprime, buf, pk, buf+49);  
         for (int i=0; i<81; i++)
             buf[i] = rand()%256;  
-		encoded = poly_fromRM(v, buf, RM_r, RM_m, RM_k);
 
+		encoded = poly_fromRM2(v, buf, RM_r, RM_m, RM_k);
         poly_sampleKmodif(sprimehat, buf+49, 0);
         poly_sampleKmodif(eprimehat, buf+49, 1);
         poly_sampleKmodif(eprimeprime, buf+49, 2);
@@ -122,41 +152,33 @@ main()
         poly_invntt(ehat);
         poly_add(ehat, ehat, eprimeprime);
         poly_add(v, v,ehat);
-		       
-        // NewHope-CPA-PKE DECRYPTION 
-        T = poly_toRMdebug(decoded,v, RM_r, RM_m, RM_N, inputGMC);
-        for (unsigned int k = 0; k < RM_N; k++)
+        //save newhope additive noise				
+/*		for (unsigned int i = 0; i < NEWHOPE_N; i++)
         {
-            deucl += (inputGMC[k]-(1.0-2.0*(encoded->values[k])))*(inputGMC[k]-(1.0-2.0*(encoded->values[k])));
-        }
+            fprintf(fp_nhnoise,"%d ",v->coeffs[i]);
+        }*/
+        // NewHope-CPA-PKE DECRYPTION 
+		poly_toRM2(decoded,v, RM_r, RM_m, RM_N, sigma, 20);
 
-        fprintf(fp_errlog,"%d ", count);
-        fprintf(fp_errlog,"%5.3f ", deucl);
-        deucl = 0;
-        if(ret_val = compare_vectors(encoded, decoded) != 0)
+		if(ret_val = compare_vectors(encoded, decoded) != 0)
         {
     		framerrCount ++;
-            fprintf(fp_errlog,"1\n");
-            travBTree(T,fp_errlogC,fp_errlogY, 1);
-        }else
-        {
-            fprintf(fp_errlog,"0\n");
         }
 		destroy_vector(encoded);
-        destroyTree(T);////////////////////////////25/05/2020 jwang
+
+        
     } while ( count <NumofIteration );
     t = clock() - t;
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // calculate the elapsed time
     printf("The GMC took %f seconds to execute\n", time_taken);
+
     fprintf(fp_rsp, "framerrCount = %d,     ", framerrCount);
 	fprintf(fp_rsp, "TotlframCount = %d,     ", count);
 	fprintf(fp_rsp, "framerrRate = %e\n", (1.0*framerrCount/NumofIteration) );
 	fflush(fp_rsp); 
     fclose(fp_rsp); 
 	//save newhope additive noise
-	fclose(fp_errlog);
-	fclose(fp_errlogC);
-    fclose(fp_errlogY);
+	fclose(fp_nhnoise);
     return KAT_SUCCESS;
 }
 

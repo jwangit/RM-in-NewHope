@@ -236,6 +236,59 @@ vector* poly_fromRM(poly *r, const unsigned char *msg, int par_r, int par_m, int
 }
 
 /*************************************************
+* Name:        poly_fromRM2  output {0,Q/2}^n
+* 
+* Description: Convert 32-byte message to polynomial
+*
+* Arguments:   - poly *r:                  pointer to output polynomial
+*              - const unsigned char *msg: pointer to input message
+*              - par_r, par_m, par_k: reed muller codes parameters 
+**************************************************/
+vector* poly_fromRM2(poly *r, const unsigned char *msg, int par_r, int par_m, int par_k)
+{
+  unsigned int mask;
+  int temp;
+  int par_N = 1<<par_m;
+  vector *m = (vector *) malloc(sizeof(vector));
+  m->values = (int *) malloc(sizeof(int)*par_k);
+  m->length = par_k;
+  vector* encoded;
+
+  // For RM(4,10),par_k=386. We append 130 0s after 256 bits of message.
+  /*for ( unsigned int i = 0; i < NEWHOPE_SYMBYTES; i++)
+  {
+    for (unsigned int j = 0; j < 8; j++)
+    {
+      m->values[8*i+j] = (msg[i]>>j)&1;
+    }
+  }
+  for (unsigned int i = 256; i < 386; i++)
+  {
+    m->values[i] = 0;
+  }*/
+  // For RM(4,10),par_k=386, we use code rate 386/1024.
+  for ( unsigned int i = 0; i < 48; i++)
+  {
+    for (unsigned int j = 0; j < 8; j++)
+    {
+      m->values[8*i+j] = (msg[i]>>j)&1;
+    }
+  }
+  m->values[384] = msg[48]&1;
+  m->values[385] = (msg[48]>>1)&1;
+
+  encoded = encode(m, par_r, par_m);
+  for (unsigned i = 0; i < par_N; i++)
+  {
+    mask = -((encoded->values[i]) & 1);
+    temp = mask & (NEWHOPE_Q/2);
+    r->coeffs[i] = temp;
+  }
+  destroy_vector(m);
+  return encoded;
+}
+
+/*************************************************
 * Name:        poly_tomsg
 * 
 * Description: Convert polynomial to 32-byte message
@@ -338,7 +391,39 @@ void poly_toRM(vector *decoded, const poly *x, int par_r, int par_m, int par_N)
     destroyTree(T);    
     
 } 
+/*************************************************
+* Name:        poly_toRM2   from {0,Q/2}^n----->{0,1}^n
+* 
+* Description: Convert polynomial to vecotr structure decoded. Then run GMC decoding.
+*
+* Arguments:   - vector *decoded: pointer to output codeword
+*              - const poly *x:      pointer to input polynomial
+*              - int par_r, int par_m: RM parameters
+**************************************************/
+void poly_toRM2(vector *decoded, const poly *x, int par_r, int par_m, int par_N,double sigma, int Neighbour)
+{
+  double scale = NEWHOPE_Q / 2.0;
+  double inputGMC[NEWHOPE_N];
+  double *y = NULL;
 
+  for (unsigned int i = 0; i < par_N; i++)
+  {
+    inputGMC[i] = x->coeffs[i] / scale;
+    
+  }
+  y = diffposPr(inputGMC, par_N, sigma,Neighbour);
+
+    Btree *T = NULL;
+    T = softDecSimp(y, par_r,  par_m);
+    for (unsigned int i = 0; i < par_N ; i++)
+    {
+      decoded->values[i] = T->chat[i];
+    }
+    destroyTree(T);    
+    free(y);
+    y=NULL;
+    
+}
 /*************************************************
 * Name:        poly_toRMdebug
 * 
@@ -614,6 +699,93 @@ void poly_sampleKmodif(poly *r, const unsigned char *seed, unsigned char nonce)
  
     }
   }
+}
+/*************************************************
+* Name:        poly_sampleKmodif2       return sum_i r_i^2
+* 
+* Description: Sample a polynomial deterministically from a seed and a nonce,
+*              with output polynomial close to centered binomial distribution
+*              with parameter aribrary k=NEWHOPE_bytesofK*8
+*
+* Arguments:   - poly *r:                   pointer to output polynomial
+*              - unsigned char numof2       number of 2 bits of hamming weight
+*              - const unsigned char *seed: pointer to input seed 
+*              - unsigned char nonce:       one-byte input nonce
+*              - int K: binomial parameter
+**************************************************/
+double poly_sampleKmodif2(poly *r, const unsigned char *seed, unsigned char nonce, double scale)
+{
+  unsigned char buf[64*(2*NEWHOPE_bytesofK+NWEHOPE_bytesofKextra)], a[NEWHOPE_bytesofK+NEWHOPE_numof2bits], b[NEWHOPE_bytesofK+NEWHOPE_numof2bits];
+  int i,j;
+  int temp=0; 
+  uint16_t temp1;
+  unsigned char extseed[NEWHOPE_SYMBYTES+2];
+  double h2 = 0;
+  for(i=0;i<NEWHOPE_SYMBYTES;i++)
+    extseed[i] = seed[i];
+  extseed[NEWHOPE_SYMBYTES] = nonce;
+
+  for(i=0;i<NEWHOPE_N/64;i++) // Generate noise in blocks of 64 coefficients 
+  {
+    extseed[NEWHOPE_SYMBYTES+1] = i;
+    shake256(buf,64*(2*NEWHOPE_bytesofK+NWEHOPE_bytesofKextra),extseed,NEWHOPE_SYMBYTES+2); 
+    for(j=0;j<64;j++)
+    {
+      r->coeffs[64*i+j] =  NEWHOPE_Q ;
+      temp = 0;
+      while (temp < NEWHOPE_bytesofK)
+      {  
+        a[temp] = buf[j*(2*NEWHOPE_bytesofK+NWEHOPE_bytesofKextra)+2*temp];
+        b[temp] = buf[j*(2*NEWHOPE_bytesofK+NWEHOPE_bytesofKextra)+2*temp+1];
+        r->coeffs[64*i+j] += hw(a[temp]);
+        r->coeffs[64*i+j] -= hw(b[temp]);
+        temp++;
+      };
+
+      #if ( NEWHOPE_numof2bits == 1 )// central binomial para = 8*x+2
+      {
+        temp1 = buf[(j+1)*(2*NEWHOPE_bytesofK+NWEHOPE_bytesofKextra)-1];
+        a[NEWHOPE_bytesofK] = temp1 & 3;
+        b[NEWHOPE_bytesofK] = temp1 & 12;
+        r->coeffs[64*i+j] += hw(a[NEWHOPE_bytesofK]);
+        r->coeffs[64*i+j] -= hw(b[NEWHOPE_bytesofK]);
+      }
+      #elif( NEWHOPE_numof2bits == 2 ) // central binomial para = 8*x+4
+      {
+        temp = 0;
+        temp1 = buf[(j+1)*(2*NEWHOPE_bytesofK+NWEHOPE_bytesofKextra)-1];
+        for (temp = 0; temp < NEWHOPE_numof2bits; temp++)
+        {
+          a[NEWHOPE_bytesofK+temp] = temp1 & 3;
+          temp1 >>= 2;
+          b[NEWHOPE_bytesofK+temp] = temp1 & 3;
+          temp1 >>= 2;
+          r->coeffs[64*i+j] += hw(a[NEWHOPE_bytesofK+temp]);
+          r->coeffs[64*i+j] -= hw(b[NEWHOPE_bytesofK+temp]);
+        }
+      }
+      #elif (NEWHOPE_numof2bits == 3)
+      {
+        temp = 0;
+        temp1 = (buf[(j+1)*(2*NEWHOPE_bytesofK+NWEHOPE_bytesofKextra)-2]<<8) | (buf[(j+1)*(2*NEWHOPE_bytesofK+NWEHOPE_bytesofKextra)-1]);
+        for (temp = 0; temp < NEWHOPE_numof2bits; temp++)
+        {
+          a[NEWHOPE_bytesofK+temp] = temp1 & 3;
+          temp1 >>= 2;
+          b[NEWHOPE_bytesofK+temp] = temp1 & 3;          
+          temp1 >>= 2;
+          r->coeffs[64*i+j] += hw(a[NEWHOPE_bytesofK+temp]);
+          r->coeffs[64*i+j] -= hw(b[NEWHOPE_bytesofK+temp]);
+          
+        };
+      }
+      #endif 
+      
+      h2 += (r->coeffs[64*i+j] - NEWHOPE_Q)/scale * (r->coeffs[64*i+j] - NEWHOPE_Q)/scale;
+      
+    }
+  }
+  return h2;
 }
 
 /*************************************************

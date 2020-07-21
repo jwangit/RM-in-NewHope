@@ -9,6 +9,9 @@
 
 #include "reedmullergmc.h"
 #include <math.h>
+#ifndef M_PI
+#    define M_PI 3.14159265358979323846
+#endif
 
 int sign(double x)
 {
@@ -136,8 +139,148 @@ Btree *createTree(double *ptr, int8_t r, int8_t m)
     return T;
     
 }
+double transPr(double x, double mean, double sigma, int Neighbour)
+{
+    double C1,C2,C3;
+    int Num = Neighbour/2;
+    C1 = 1.0/(sigma*(sqrt(2.0*M_PI)));
+    C2 = exp((-0.5)*(((x-mean)/sigma)*((x-mean)/sigma)));
+    for (int i = 1; i < Num; i++)
+    {
+        C2 += exp((-0.5)*(((x-mean+2*i)/sigma)*((x-mean+2*i)/sigma)))+exp((-0.5)*(((x-mean-2*i)/sigma)*((x-mean-2*i)/sigma)));        
+    }
+    C3 = C1 * C2;
+    return C3;
+}
+double *diffposPr(double *x, int N, double sigma, int Neighbour)
+{
+    int pus = N/2;
+    double *y =  (double*) malloc(sizeof(double)*N);////////////////////REMBEMBER TO FREE!!!!!!!!!!!!
+    double qprime, qprime2;
+    for (int i = 0; i < pus; i++)
+    {
+        qprime2 = transPr(x[2*i],0,sigma,Neighbour)/(transPr(x[2*i],0,sigma,Neighbour)+transPr(x[2*i],1,sigma,Neighbour));
+        qprime = transPr(x[2*i+1],0,sigma,Neighbour)/(transPr(x[2*i+1],0,sigma,Neighbour)+transPr(x[2*i+1],1,sigma,Neighbour));
+        y[2*i] = 2*qprime2 - 1;
+        y[2*i+1] = 2*qprime - 1;
+    }
+    return y;
+}
+Btree *softDecSimp(double *ptr, int8_t r, int8_t m)
+{
+    int N = 1 << m;
+    int pus =N/2;
 
+    double Ysum = 0;
+    int temp = 0;
+    int temp1 = 0;
+    double smallestV = 0;
+    int smallestInd = 0;
+    Btree *T;
+    T = (Btree *) malloc(sizeof(Btree));
+    T->recYv = (double*) malloc(sizeof(double)*pus);
+    T->recYu = (double*) malloc(sizeof(double)*pus);
+    T->chat = (int8_t *) malloc(sizeof(int8_t)*N);///////////////////////REMEMBER TO FREE!!!!!!!!!
+ //   T->chathat = (vector*) malloc(sizeof(vector));
+ //   T->chathat->values = (int *) malloc(sizeof(int)*N);
+ //   T->sys = (int8_t *) malloc(sizeof(int8_t)*dim);///////////////////////REMEMBER TO FREE!!!!!!!!!
+    (T) -> r = r;
+    (T) -> m = m;
+//    T->chathat->length = N;
+    
+    if ( r == 0 )
+    {
+        T->lchild = NULL;
+        T->rchild = NULL;
+        free(T->recYv);
+        free(T->recYu);
+        T->recYv = NULL;
+        T->recYu = NULL;
+        // add decoding of repetition code here ; give T->chat
+        for (int i = 0; i < N; i++)
+        {
+            Ysum += ptr[i];
+        }        
+        temp = sign(Ysum);
+        if (temp == 0 || temp == -1)  
+        {
+            for (int i = 0; i < N; i++)
+            {
+                T->chat[i] = 1;
+             //   T->chathat->values[i] = 1;
+            }
+        }else 
+        {
+            for (int i = 0; i < N; i++)
+            {
+                T->chat[i] = 0;
+             //   T->chathat->values[i] = 0;
+            }
+        }
+        // finish decoding of repetition code here ; give T->chat  
+    }else if ( r == (m-1) )
+    {
+        T->lchild = NULL;
+        T->rchild = NULL;
+        free(T->recYv);
+        free(T->recYu);
+        T->recYv = NULL;
+        T->recYu = NULL;
+        // add decoding SPC code here
+        for (int i = 0; i < N; i++)
+        {
+            T->chat[i] = (ptr[i] <= 0);
+            temp1 += (T->chat[i]);
+           // T->chathat->values[i] = ptr[i]<0;
+           // temp1 += (T->chathat->values[i]); 
+        }
+        if ( (temp1%2) == 1)
+        {
+            smallestV = fabs(ptr[0]);
+            smallestInd = 0;
+            for (int i = 0; i < N; i++)
+            {
+                if (fabs(ptr[i]) < smallestV) {
+                    smallestV = fabs(ptr[i]);
+                    smallestInd = i;
+                }
+            }
+            T->chat[smallestInd] ^= 0X01;
+            //T->chathat->values[smallestInd] ^= 0X01;
+        }
+        // end decoding SPC code here
+    }else
+    {
+        // add the approx. function of LR recursion; BOTH LEFT AND RIGH BRANCH
+        //T->recYv = rm_calc_f(ptr,  N);
+        for (uint16_t i = 0; i < pus; i++)
+        {
+            T->recYv[i] =  ptr[2*i]*ptr[2*i+1];     //sign(ptr[2*i]*ptr[2*i+1]) * fmin(fabs(ptr[2*i]),fabs(ptr[2*i+1]));
+        }
+        T->lchild = softDecSimp(  T->recYv, (r-1), (m-1));
+        
+        //T->recYu = rm_calc_g(ptr,N,(T->lchild)->chat);
+        Btree *Tv = T->lchild;
+        for (uint16_t i = 0; i < pus; i++)
+        {
+            //T->recYu[i] = 0.5  * ( pow(-1,Tv->chat[i]) * ptr[2*i] + ptr[2*i+1] ) ;
+            T->recYu[i] =  ( ptr[2*i+1] + (1-2*(Tv->chat[i])) * ptr[2*i] )/(1 + ptr[2*i+1]*ptr[2*i]*(1-2*(Tv->chat[i])) ) ;
+        }
+        T->rchild = softDecSimp( T->recYu, r, (m-1) );
+        // add determination of the codeword here i.e. step 2c; give T->chat
+        // T->chat = combsubcodes(T->lchild,T->rchild,N/2);
+        Btree *Tu = T->rchild;
+        for (int i = 0; i < pus; i++)
+        {
+            T->chat[2*i] = (Tv->chat[i])^(Tu->chat[i]);
+            T->chat[2*i+1] = Tu->chat[i];   
+        }
+    }
+    // step 3 give T->chat; NO NEED ???? Answer is no.
 
+    return T;
+    
+}
 double* rm_calc_f(double *recY, uint16_t n)
 {
     uint16_t pus = n/2;
