@@ -45,7 +45,7 @@ main()
     int                 ret_val;
     unsigned char buf[49+NEWHOPE_SYMBYTES];//[2*NEWHOPE_SYMBYTES];
     unsigned int framerrCount = 0;
-	unsigned int NumofIteration = 1000;
+	unsigned int NumofIteration = 1000000;
 	vector *encoded;
     vector *decoded = (vector *)malloc(sizeof(vector));
     decoded->length = NEWHOPE_N;
@@ -70,7 +70,7 @@ main()
         printf("Couldn't open <%s> for write\n", fn_rsp);
         return KAT_FILE_OPEN_ERROR;
     }
-	fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE_RP);
+	fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE_RM);
 	fprintf(fp_rsp, "K = %d,     ", NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
     fflush(fp_rsp); 
 
@@ -80,9 +80,9 @@ main()
 	int returnfscanf;    
     t = clock();
 
-	double pdf[1000];
+/*	double pdf[1000];
 	double x= 0;
-	double rep = 2.0/1000;
+	double rep = 2.0/1000;*/
     do {
         count++;
         // Generate the public/private keypair

@@ -65,7 +65,7 @@ main()
         printf("Couldn't open <%s> for write\n", fn_rsp);
         return KAT_FILE_OPEN_ERROR;
     }
-	fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE_RP);
+	fprintf(fp_rsp, "# %s\n\n", CRYPTO_PKE_RM);
 	fprintf(fp_rsp, "K = %d,     ", NEWHOPE_bytesofK*8+2*NEWHOPE_numof2bits);
     fflush(fp_rsp); 
 

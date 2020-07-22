@@ -7,9 +7,9 @@
 
 #define NEWHOPE_Q 12289 
 #define NEWHOPE_K 8           /* used in noise sampling */
-#define NEWHOPE_bytesofK 8     /* used to initialize the noise parameter K*/
-#define NWEHOPE_bytesofKextra 1 // extra bytes to initialize noise parameter K
-#define NEWHOPE_numof2bits 2   // extra bytes to initialize noise parameter K
+#define NEWHOPE_bytesofK 9     /* used to initialize the noise parameter K*/
+#define NWEHOPE_bytesofKextra 2 // extra bytes to initialize noise parameter K
+#define NEWHOPE_numof2bits 3   // extra bytes to initialize noise parameter K
 
 #define NEWHOPE_SYMBYTES 32   /* size of shared key, seeds/coins, and hashes */
 

@@ -217,7 +217,43 @@ vector* poly_fromRM(poly *r, const unsigned char *msg, int par_r, int par_m, int
   destroy_vector(m);
   return encoded;
 }
+/*************************************************
+* Name:        poly_fromRM2  output {0,Q/2}^n
+* 
+* Description: Convert 32-byte message to polynomial
+*
+* Arguments:   - poly *r:                  pointer to output polynomial
+*              - const unsigned char *msg: pointer to input message
+*              - par_r, par_m, par_k: reed muller codes parameters 
+**************************************************/
+vector* poly_fromRM2(poly *r, const unsigned char *msg, int par_r, int par_m, int par_k)
+{
+  unsigned int mask;
+  int temp;
+  int par_N = 1<<par_m;
+  vector *m = (vector *) malloc(sizeof(vector));
+  m->values = (int *) malloc(sizeof(int)*par_k);
+  m->length = par_k;
+  vector* encoded;
 
+ for ( unsigned int i = 0; i < NEWHOPE_SYMBYTES; i++)
+  {
+    for (unsigned int j = 0; j < 8; j++)
+    {
+      m->values[8*i+j] = (msg[i]>>j)&1;
+    }
+  }
+
+  encoded = encode(m, par_r, par_m);
+  for (unsigned i = 0; i < par_N; i++)
+  {
+    mask = -((encoded->values[i]) & 1);
+    temp = mask & (NEWHOPE_Q/2);
+    r->coeffs[i] = temp;
+  }
+  destroy_vector(m);
+  return encoded;
+}
 /*************************************************
 * Name:        poly_tomsg
 * 
@@ -323,7 +359,39 @@ void poly_toRM(vector *decoded, const poly *x, int par_r, int par_m, int par_N)
     
   
 } 
+/*************************************************
+* Name:        poly_toRM2   from {0,Q/2}^n----->{0,1}^n
+* 
+* Description: Convert polynomial to vecotr structure decoded. Then run GMC decoding.
+*
+* Arguments:   - vector *decoded: pointer to output codeword
+*              - const poly *x:      pointer to input polynomial
+*              - int par_r, int par_m: RM parameters
+**************************************************/
+void poly_toRM2(vector *decoded, const poly *x, int par_r, int par_m, int par_N,double sigma, int Neighbour)
+{
+  double scale = NEWHOPE_Q / 2.0;
+  double inputGMC[NEWHOPE_N];
+  double *y = NULL;
 
+  for (unsigned int i = 0; i < par_N; i++)
+  {
+    inputGMC[i] = x->coeffs[i] / scale;
+    
+  }
+  y = diffposPr(inputGMC, par_N, sigma,Neighbour);
+
+    Btree *T = NULL;
+    T = softDecSimp(y, par_r,  par_m);
+    for (unsigned int i = 0; i < par_N ; i++)
+    {
+      decoded->values[i] = T->chat[i];
+    }
+    destroyTree(T);    
+    free(y);
+    y=NULL;
+    
+}
 /*************************************************
 * Name:        poly_toRMdebug
 * 

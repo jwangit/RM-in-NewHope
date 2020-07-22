@@ -23,7 +23,8 @@
                 //"newhope512cpa/PQCgenKAT_pkeRM.c",
                 //"newhope512cpa/PQCgenKAT_pkeRCodes.c",
                 //"newhope512cpa/PQCsimpmodl_RCdebug.c",
-                "newhope512cpa/PQCsimpmodl_RMdebug.c",         */
+                //"newhope512cpa/PQCsimpmodl_RMdebug.c",         
+                "newhope512cpa/PQCsimpmodl_RM_pos.c",        */ 
                 "newhope1024cpa/kem.c", 
                 "newhope1024cpa/cpapke.c",
                 "newhope1024cpa/fips202.c",
